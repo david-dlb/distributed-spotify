@@ -1,0 +1,1 @@
+public record PaginationModel(int Page, int Limit); 
