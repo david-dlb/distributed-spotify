@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproducción de Música</title>
+</head>
+<body>
+    <h1>Reproducción de Música en HTML</h1>
+    <button id="playButton">Iniciar Reproducción</button>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+    <script>
+        const socket = io('http://localhost:3000');
+let audioCache = []; // Almacena los chunks de audio
+
+// Solicita la canción al servidor
+function requestSong() {
+    audioCache = []; // Limpia el caché
+    socket.emit('requestSong');
+}
+
+socket.on('chunk', ({ index, data }) => {
+    console.log(`Recibido chunk ${index}`);
+    audioCache.push(new Uint8Array(data)); // Almacena cada chunk
+
+    // Puedes iniciar la reproducción al recibir los primeros chunks
+    if (index === 1) {
+        playNextChunk();
+    }
+});
+
+socket.on('endOfSong', () => {
+    console.log('Canción completa recibida');
+    // Opcional: Marca que ya no se esperan más chunks
+});
+
+let isPlaying = false;
+const playNextChunk = () => {
+    console.log(audioCache)
+    if (!isPlaying && audioCache.length > 0) {
+        const chunkData = audioCache.shift(); // Saca el chunk más viejo para reproducir
+        playAudio(chunkData); // Función para reproducir el chunk
+    }
+};
+
+const playAudio = (chunkData) => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    audioContext.decodeAudioData(chunkData.buffer, (buffer) => {
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+        isPlaying = true;
+        source.start(0);
+
+        source.onended = () => {
+            isPlaying = false;
+            playNextChunk();
+        };
+    });
+};
+
+// Llamar a requestSong cuando el usuario presione un botón, por ejemplo
+document.getElementById('playButton').addEventListener('click', requestSong)
+    </script>
+</body>
+</html>

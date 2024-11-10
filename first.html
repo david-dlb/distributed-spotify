@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproducción de Música</title>
+</head>
+<body>
+    <h1>Reproducción de Música en HTML</h1>
+    <button id="playButton">Iniciar Reproducción</button>
+    
+    <script>
+        let currentChunkIndex = 0; // Índice del chunk actual]
+        let actualChunck = 0
+        const audioCache = []; // Caché para almacenar los chunks de audio
+        const cacheSize = 5; // Tamaño máximo de la caché
+        let isPlaying = false; // Estado de reproducción
+        const getChunk = async() => {
+            if (currentChunkIndex >= 8)return
+            const url = new URL(`/getChunk/${currentChunkIndex}`, "http://localhost:3000");
+                console.log("Solicitando:", url);
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP! estado: ${response.status}`);
+                    }
+                    
+                    const chunkData = await response.arrayBuffer();
+                    audioCache.push(chunkData); // Almacenar en caché
+                    currentChunkIndex++
+                } catch (error) {
+                    console.error('Error obteniendo el chunk:', error);
+                }
+            if (currentChunkIndex >= 8)return
+            getChunk()
+        }
+
+        const playNextChunk = async () => {
+        console.log(actualChunck, audioCache)
+        if (!isPlaying && audioCache.length > 0) {
+                // Reproducir el primer chunk de la caché
+                actualChunck ++
+                const chunkData = audioCache.shift(); // Tomar el chunk más viejo en la caché
+                playAudio(chunkData);
+            }
+        }
+        const playAudio = (chunkData) => {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            console.log()
+            audioContext.decodeAudioData(chunkData, buffer => {
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioContext.destination);
+                isPlaying = true; // Marcar como reproduciendo
+                source.start(0);
+
+                // Continuar con la reproducción de los chunks
+                source.onended = () => {
+                    isPlaying = false; // Marcar como terminado
+                    playNextChunk(); // Llamar a playNextChunk para reproducir el siguiente
+                };
+            }, error => {
+                console.error('Error decodificando datos de audio:', error);
+            });
+        }
+
+
+        // Agregar event listener para iniciar la reproducción
+        document.getElementById('playButton').addEventListener('click', async() => {
+            currentChunkIndex = 0; // Reiniciar el índice
+            audioCache.length = 0; // Vaciar la caché
+            isPlaying = false; // Reiniciar estado de reproducción
+            await getChunk(); // Comenzar a obtener chunks
+            setInterval(() => {
+                playNextChunk(); // Iniciar la reproducción
+            }, 100);
+        });
+    </script>
+</body>
+</html>
