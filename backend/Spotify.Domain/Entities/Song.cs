@@ -9,15 +9,24 @@ namespace Spotify.Domain.Entities
         public Guid? AuthorId { get; private set; }
         public Guid? AlbumId { get; private set; }
         public MusicGenre Genre { get; private set; }
+        public SongStatus Status { get; private set; }
+        
         private Song(string name,Guid? album, Guid? author,MusicGenre genre)
         {
             Name = name;
             AlbumId = album;
             AuthorId = author;
             Genre = genre;
+            Status = SongStatus.Empty;
+            Id = Guid.NewGuid();     
         }
         public static Song Create(string name, Guid? albumId, Guid? authorId, MusicGenre? genre ){
             return new Song(name, albumId, authorId, genre ?? MusicGenre.Unknown);
+        }
+        public void SetAsHealthy()
+        {
+            // TODO: emit event to notify the replication service to replicate this song to other nodes.
+            Status = SongStatus.Healthy;
         }
     }
 }

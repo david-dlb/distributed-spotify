@@ -25,6 +25,26 @@ namespace Spotify.Api.Controllers.Common
                 ErrorDetails = string.Join(";",error.Errors.Select(x => x.Description))
             };
         }
+        public static CommonResponse<T> Fail<T>(string errorMessage)
+        {
+            return new CommonResponse<T>()
+            {
+                Success = false,
+                Value = default(T),
+                ErrorMessage = errorMessage,
+                ErrorDetails = null
+            };
+        }
+        public static CommonResponse<object?> Fail(string errorMessage)
+        {
+            return new CommonResponse<object?>()
+            {
+                Success = false,
+                Value = null,
+                ErrorMessage = errorMessage,
+                ErrorDetails = null
+            };
+        }
     }
     public class CommonResponse<T>
     {
