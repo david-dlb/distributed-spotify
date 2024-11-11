@@ -6,7 +6,7 @@ using Spotify.Domain.Enums;
 
 namespace Spotify.Application.Songs.Commands.Create
 {
-    public class CreateSongCommand() : IRequest<ErrorOr<bool>>
+    public class CreateSongCommand() : IRequest<ErrorOr<Song>>
     {
         public Guid? AlbumId { get; init; }
         public Guid? AuthorId { get; init; }
@@ -14,11 +14,11 @@ namespace Spotify.Application.Songs.Commands.Create
         public required string Name { get; init; }
     }
 
-    public class CreateSongCommandHandler(ISongRepository songRepository) : IRequestHandler<CreateSongCommand,ErrorOr<bool>>
+    public class CreateSongCommandHandler(ISongRepository songRepository) : IRequestHandler<CreateSongCommand,ErrorOr<Song>>
     {
         private readonly ISongRepository _songRepository = songRepository;
 
-        public async Task<ErrorOr<bool>> Handle(CreateSongCommand request, CancellationToken cancellationToken)
+        public async Task<ErrorOr<Song>> Handle(CreateSongCommand request, CancellationToken cancellationToken)
         {
             var song = Song.Create(request.Name,request.AlbumId,request.AuthorId,request.Genre);
             var result = await _songRepository.Save(song);
