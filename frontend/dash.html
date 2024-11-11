@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproducción de Audio con DASH.js</title>
+    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+</head>
+<body>
+    <h1>Reproducción de Audio con DASH.js</h1>
+    <button id="playButton">Iniciar Reproducción</button>
+    <video id="audioPlayer" controls></video>
+
+    <script>
+        const player = dashjs.MediaPlayer().create();
+        document.getElementById('playButton').addEventListener('click', () => {
+            player.initialize(document.getElementById('audioPlayer'), 'http://localhost:3000/audio/manifest', true);
+            let retryCount = 0;
+const maxRetries = 10;
+
+// Evento para manejar la carga de fragmentos y los errores
+player.on(dashjs.MediaPlayer.events.FRAGMENT_LOADING_COMPLETED, (e) => {
+    if (e.request && e.request.state === "failed") { // Verifica si la carga falló
+        console.warn("Error en la carga del fragmento, intentando nuevamente...");
+        
+        if (retryCount < maxRetries) {
+            retryCount++;
+            // player.attachSource(player.getSource()); // Recarga la fuente para intentar nuevamente
+            switchToBackupServer(player)
+        } else {
+            console.error("Fallo en la carga del fragmento después de múltiples intentos.");
+            // Puedes mostrar un mensaje de error o realizar una acción específica para el usuario
+        }
+    } else {
+        retryCount = 0; // Reinicia el contador si la carga es exitosa
+    }
+});
+        });
+
+
+        // Función para cambiar al servidor alternativo y reanudar la reproducción
+        function switchToBackupServer(player) {
+            const currentTime = videoElement.currentTime; // Obtén el tiempo actual de reproducción
+            player.attachSource("http://localhost:3001/audio/manifest"); // Cambia al siguiente servidor
+            player.seek(currentTime); // Restaura el tiempo de reproducción
+            console.info(`Cambiado al servidor: http://localhost:3001/audio/manifest`);
+        }
+    </script>
+</body>
+</html>

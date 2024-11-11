@@ -64,7 +64,36 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = 3000;
+
+// Endpoint para servir el archivo .mpd
+app.get('/audio/manifest', (req, res) => {
+    const manifestPath = path.join(__dirname, 'public', 'audio', 'tu_audio.mpd');
+    res.setHeader('Content-Type', 'application/dash+xml');
+    fs.createReadStream(manifestPath).pipe(res);
+});
+
+// Endpoint para servir el archivo de inicialización
+app.get('/audio/init-stream0.m4s', (req, res) => {
+    const initPath = path.join(__dirname, 'public', 'audio', 'init-stream0.m4s');
+    res.setHeader('Content-Type', 'video/mp4');
+    fs.createReadStream(initPath).pipe(res);
+});
+
+let i = -6
+// Endpoint para servir los segmentos de audio
+app.get('/audio/chunk-stream0-:segmentId.m4s', (req, res) => {
+    const segmentId = req.params.segmentId;
+    const segmentPath = path.join(__dirname, 'public', 'audio', `chunk-stream0-${segmentId}.m4s`);
+    
+    if (fs.existsSync(segmentPath)) {
+        res.setHeader('Content-Type', 'video/mp4');
+        fs.createReadStream(segmentPath).pipe(res);
+    } else {
+        res.status(404).send('Segmento no encontrado');
+    }
+});
+
+const PORT = 3001;
 server.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

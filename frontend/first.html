@@ -15,6 +15,7 @@
         const audioCache = []; // Caché para almacenar los chunks de audio
         const cacheSize = 5; // Tamaño máximo de la caché
         let isPlaying = false; // Estado de reproducción
+        
         const getChunk = async() => {
             if (currentChunkIndex >= 8)return
             const url = new URL(`/getChunk/${currentChunkIndex}`, "http://localhost:3000");
@@ -44,6 +45,7 @@
                 playAudio(chunkData);
             }
         }
+        
         const playAudio = (chunkData) => {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             console.log()
