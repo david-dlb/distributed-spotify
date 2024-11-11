@@ -1,5 +1,6 @@
 using ErrorOr;
 using MediatR;
+using Serilog;
 using Spotify.Application.Common.Interfaces;
 using Spotify.Application.Common.Interfaces.Services;
 using Spotify.Application.Common.Models;
@@ -22,11 +23,13 @@ namespace Spotify.Application.Songs.Queries.GetChunk
             var songResult = await _songRepository.GetById(request.SongId);
             if (songResult.IsError)
             {
+                Log.Error($"Error retrieving song with id {request.SongId}.");
                 // TODO: handle 
             }
             var data = await _storageService.ReadFileAsync(request.SongId.ToString(),request.Range,cancellationToken);
             if (data.IsError)
             {
+                Log.Error($"Error reading file from storage service with id {request.SongId}.");
                 // TODO: handle 
             }
             return data.Value;

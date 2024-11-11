@@ -1,5 +1,6 @@
 using ErrorOr;
 using MediatR;
+using Serilog;
 using Spotify.Application.Common.Interfaces;
 using Spotify.Application.Common.Interfaces.Services;
 using Spotify.Domain.ValueObjects;
@@ -24,20 +25,21 @@ namespace Spotify.Application.Songs.Commands.UploadSong
             var songResult = await _songRepository.GetById(request.SongId);
             if (songResult.IsError)
             {
-                // TODO: Logging
+                Log.Error($"Song not found with id {request.SongId}.");
                 return Error.NotFound($"Song with id {request.SongId} not found."); 
             }
             var fileSaveResult = await _storageService.SaveFileAsync(request.SongId.ToString(),request.Stream, cancellationToken); 
             
             if (fileSaveResult.IsError)
             {
+                Log.Error($"Error at storage service trying to save a file.");
                 // TODO: Handle this 
             }
             
             var song = songResult.Value; 
             song!.SetAsHealthy(request.Metadata); 
             await _songRepository.Save(song);
-
+            Log.Information("Song uploaded successfully.");
             return Result.Success; 
         }
     }
