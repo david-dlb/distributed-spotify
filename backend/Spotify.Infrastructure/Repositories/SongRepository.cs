@@ -17,7 +17,13 @@ namespace Spotify.Infrastructure.Repositories
 
         public async Task<ErrorOr<Song?>> GetById(Guid songId)
         {
-            return _songs.Find(x => x.Id == songId);
+            var song = _songs.Find(x => x.Id == songId);
+
+            if (song == null)
+            {
+                return Error.NotFound("Song not found.");
+            }
+            return song;
         }
 
         public async Task<ErrorOr<Song>> Save(Song song)

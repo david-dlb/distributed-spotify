@@ -1,5 +1,6 @@
 using Spotify.Domain.Common;
 using Spotify.Domain.Enums;
+using Spotify.Domain.ValueObjects;
 
 namespace Spotify.Domain.Entities
 {
@@ -10,6 +11,7 @@ namespace Spotify.Domain.Entities
         public Guid? AlbumId { get; private set; }
         public MusicGenre Genre { get; private set; }
         public SongStatus Status { get; private set; }
+        public SongMetadata? Metadata { get; private set; }
         
         private Song(string name,Guid? album, Guid? author,MusicGenre genre)
         {
@@ -23,10 +25,11 @@ namespace Spotify.Domain.Entities
         public static Song Create(string name, Guid? albumId, Guid? authorId, MusicGenre? genre ){
             return new Song(name, albumId, authorId, genre ?? MusicGenre.Unknown);
         }
-        public void SetAsHealthy()
+        public void SetAsHealthy(SongMetadata metadata)
         {
             // TODO: emit event to notify the replication service to replicate this song to other nodes.
             Status = SongStatus.Healthy;
+            Metadata = metadata;
         }
     }
 }

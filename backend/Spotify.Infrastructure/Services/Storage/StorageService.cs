@@ -1,14 +1,31 @@
 using ErrorOr;
 using Spotify.Application.Common.Interfaces.Services;
+using Spotify.Application.Common.Models;
 
 namespace Spotify.Infrastructure.Services.Storage
 {
     public class StorageService : IStorageService
     {
 
-        public Task<ErrorOr<Stream>> ReadFileAsync(string id, CancellationToken ct)
+        public async Task<ErrorOr<byte[]>> ReadFileAsync(string id, ChunkRange range, CancellationToken ct)
         {
-            throw new NotImplementedException();
+            var filePath = Path.Combine("../Spotify.Infrastructure/Persistence/Uploads", id);
+
+            if (!File.Exists(filePath))
+            {
+                return Error.NotFound();
+            }
+
+            long start = range.Start, end = range.End;
+            var chunkSize = (int)(end - start + 1);
+            var buffer = new byte[chunkSize];
+            
+            using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                fileStream.Seek(start, SeekOrigin.Begin);
+                await fileStream.ReadAsync(buffer.AsMemory(0, chunkSize), ct);
+            }
+            return buffer;  
         }
 
 

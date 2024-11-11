@@ -6,7 +6,9 @@ using Spotify.Application.Common.Models;
 using Spotify.Application.Songs.Commands.Create;
 using Spotify.Application.Songs.Commands.UploadSong;
 using Spotify.Application.Songs.Queries.GetAll;
+using Spotify.Application.Songs.Queries.GetChunk;
 using Spotify.Domain.Entities;
+using Spotify.Domain.ValueObjects;
 
 namespace Spotify.Api.Controllers
 {
@@ -47,20 +49,39 @@ namespace Spotify.Api.Controllers
         [HttpPost("upload")]
         public async Task<CommonResponse<Success>> UploadSong(IFormFile songFile, [FromQuery] Guid songId)
         {
+            _logger.Log(LogLevel.Information,"[UPLOAD] Song endpoint called.");
             if (songFile == null || songFile.Length == 0)
                 return Fail<Success>("There is not any file.");
 
-            var result = await _mediator.Send(new UploadSongCommand(){
-                SongId = songId, 
-                Stream = songFile.OpenReadStream()
-            },default);
-            if (result.IsError)
-            {
+            var result = await _mediator.Send(
+                new UploadSongCommand(){
+                    SongId = songId, 
+                    Stream = songFile.OpenReadStream(), 
+                    Metadata = new SongMetadata(songFile.Length)
+                },
+                default
+            );
+            if (result.IsError){
                 _logger.Log(LogLevel.Error,"Error trying to upload the song file.");
                 return Fail("Error retrieving all songs",result); 
             }
             
             return Ok(Result.Success);
+        }
+        
+        [HttpGet("download")]
+        public async Task<IActionResult> DownloadSongChunk([FromQuery] Guid songId, [FromQuery] long start, [FromQuery] long end)
+        {
+            _logger.Log(LogLevel.Information,"[DOWNLOAD] Song endpoint called.");
+            var result = await _mediator.Send(
+                new GetChunkSongQuery(songId, new ChunkRange(start,end)),
+                default
+            );
+            if (result.IsError){
+                _logger.Log(LogLevel.Error,"Error trying to download the file song.");
+                return Problem();
+            }
+            return File(result.Value, "application/octet-stream", enableRangeProcessing: true);
         }
     }
 }

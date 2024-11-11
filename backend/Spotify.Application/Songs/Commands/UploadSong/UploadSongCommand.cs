@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Spotify.Application.Common.Interfaces;
 using Spotify.Application.Common.Interfaces.Services;
+using Spotify.Domain.ValueObjects;
 
 namespace Spotify.Application.Songs.Commands.UploadSong
 {
@@ -10,6 +11,7 @@ namespace Spotify.Application.Songs.Commands.UploadSong
         public required Guid SongId { get; init; }
 
         public required Stream Stream { get; init; }
+        public required SongMetadata Metadata { get; init; }
     }
 
     public class UploadSongCommandHandler(ISongRepository songRepository, IStorageService storageService) : IRequestHandler<UploadSongCommand,ErrorOr<Success>>
@@ -33,7 +35,7 @@ namespace Spotify.Application.Songs.Commands.UploadSong
             }
             
             var song = songResult.Value; 
-            song!.SetAsHealthy(); 
+            song!.SetAsHealthy(request.Metadata); 
             await _songRepository.Save(song);
 
             return Result.Success; 
