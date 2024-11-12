@@ -60,8 +60,3 @@ try {
 }finally{ 
     Log.Information("Shutting down the application.");
 }
-
-
-
-// curl.exe -X 'POST' 'http://localhost:5140/api/Song/upload?songId=42f79290-4ad2-4335-a3ac-873e949fb03b' -H 'accept: text/plain' -H 'Content-Type: multipart/form-data' -F 'songFile=@y2mate.com - Twenty One Pilots Greatest Hits Full Album 2024  Twenty One Pilots Best Songs Playlist 2024 Lyrics.mp3;type=audio/mpeg'
-

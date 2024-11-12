@@ -21,10 +21,23 @@ namespace Spotify.Api.Controllers
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        public async Task<CommonResponse<List<Song>>> GetAll([FromQuery]int page, [FromQuery]int limit)
+        public async Task<CommonResponse<List<Song>>> GetAll(
+            [FromQuery]int page,
+            [FromQuery]int limit,
+            [FromQuery] Guid? albumId,
+            [FromQuery] Guid? authorId,
+            [FromQuery] string? pattern
+        )
         {
             Log.Information("[GET ALL] Songs endpoint called.");
-            var songsResult = await _mediator.Send(new GetAllSongQuery(new PaginationModel(page,limit)), default);
+            var songsResult = await _mediator.Send(
+                new GetAllSongQuery(
+                    new PaginationModel(page,limit),
+                    new SongFilterModel(){
+                        AlbumId = albumId, 
+                        AuthorId = authorId,
+                        Pattern = pattern
+                    } ), default);
             if (songsResult.IsError)
             {
                 Log.Error("Error trying to get the songs.");               

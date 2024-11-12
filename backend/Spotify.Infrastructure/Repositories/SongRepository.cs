@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using ErrorOr;
 using Spotify.Application.Common.Interfaces;
 using Spotify.Application.Common.Models;
@@ -21,6 +20,14 @@ namespace Spotify.Infrastructure.Repositories
         {
             int skip = pagination.Limit*(pagination.Page - 1);  
             var songs = _songs.Skip(skip).Take(pagination.Limit); 
+            return songs.ToList();
+        }
+
+        public async Task<ErrorOr<List<Song>>> GetAll(PaginationModel pagination, Func<Song,bool> filter, CancellationToken cancellationToken = default)
+        {
+            var filteredSongs = _songs.Where(x => filter(x)); 
+            int skip = pagination.Limit*(pagination.Page - 1);  
+            var songs = filteredSongs.Skip(skip).Take(pagination.Limit); 
             return songs.ToList();
         }
 
