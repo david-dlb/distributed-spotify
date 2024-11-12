@@ -65,4 +65,5 @@ namespace Spotify.Infrastructure.Repositories
 
     public class InMemorySongRepository : InMemoryGenericRepository<Song>, ISongRepository {}
     public class InMemoryAlbumRepository : InMemoryGenericRepository<Album>, IAlbumRepository {}
+    public class InMemoryAuthorRepository : InMemoryGenericRepository<Author>, IAuthorRepository {}
 }

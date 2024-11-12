@@ -15,6 +15,7 @@ namespace Spotify.Infrastructure
             // Repositories
             services.AddScoped<ISongRepository,InMemorySongRepository>(); 
             services.AddScoped<IAlbumRepository,InMemoryAlbumRepository>(); 
+            services.AddScoped<IAuthorRepository,InMemoryAuthorRepository>(); 
 
             // External Services
             services.AddScoped<IStorageService,StorageService>(); 
