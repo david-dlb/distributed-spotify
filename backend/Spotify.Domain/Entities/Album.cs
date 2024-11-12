@@ -8,6 +8,7 @@ namespace Spotify.Domain.Entities
         private Album(string name)
         {   
             Name = name;
+            Id = Guid.NewGuid();
         }
         public static Album Create(string name)
         {

@@ -6,8 +6,9 @@ namespace Spotify.Domain.Entities
     {
         public string Name { get; private set; }
         private Author(string name)
-        {   
+        {
             Name = name;
+            Id = Guid.NewGuid();    
         }
         public static Author Create(string name)
         {

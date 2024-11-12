@@ -36,7 +36,7 @@ namespace Spotify.Application.Songs.Commands.Delete
             var result = await _songRepository.Delete(request.Id, cancellationToken);
             if (result.IsError) 
             {
-                Log.Error("Error deleting the song in database.");
+                Log.Error("Error deleting the song from database.");
                 return result; 
             }
             Log.Information("Song deleted successfully."); 

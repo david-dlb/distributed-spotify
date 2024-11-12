@@ -108,8 +108,8 @@ namespace Spotify.Api.Controllers
                 }, default);
             if (songsResult.IsError)
             {
-                Log.Error("Error trying to update a song.");
-                return Fail("Error updating the song.",songsResult); 
+                Log.Error("Error trying to delete a song.");
+                return Fail("Error deleting the song.",songsResult); 
             }
             return Ok(songsResult.Value);
         }
