@@ -5,7 +5,6 @@ using Serilog;
 using Spotify.Api.Controllers.Common;
 using Spotify.Application.Common.Models;
 using Spotify.Application.Songs.Commands.Create;
-using Spotify.Application.Songs.Commands.UploadSong;
 using Spotify.Application.Songs.Queries.GetAll;
 using Spotify.Application.Songs.Queries.GetChunk;
 using Spotify.Domain.Entities;
@@ -34,41 +33,27 @@ namespace Spotify.Api.Controllers
 
         
         [HttpPost]
-        public async Task<CommonResponse<Song>> Create(CreateSongCommand input)
+        public async Task<CommonResponse<Song>> Create(IFormFile songFile, [FromForm] CreateSongModel input)
         {
-
             Log.Information("[CREATE] Song endpoint called.");
-            var songsResult = await _mediator.Send(input, default);
+            if (songFile == null || songFile.Length == 0)
+                return Fail<Song>("There is not any file.");
+
+            var songsResult = await _mediator.Send(new CreateSongCommand(){
+                AlbumId = input.AlbumId,
+                AuthorId = input.AuthorId,
+                Genre = input.Genre,
+                Name = input.Name ?? songFile.FileName,
+                Metadata = new SongMetadata(songFile.Length),
+                Stream = songFile.OpenReadStream()
+            }, default);
+            
             if (songsResult.IsError)
             {
                 Log.Error("Error trying to create a song.");
-                return Fail("Error retrieving all songs",songsResult); 
+                return Fail("Error creating the song.",songsResult); 
             }
             return Ok(songsResult.Value);
-        }
-
-        [HttpPost("upload")]
-        public async Task<CommonResponse<Success>> UploadSong(IFormFile songFile, [FromQuery] Guid songId)
-        {
-
-            Log.Information("[UPLOAD] Song endpoint called.");
-            if (songFile == null || songFile.Length == 0)
-                return Fail<Success>("There is not any file.");
-
-            var result = await _mediator.Send(
-                new UploadSongCommand(){
-                    SongId = songId, 
-                    Stream = songFile.OpenReadStream(), 
-                    Metadata = new SongMetadata(songFile.Length)
-                },
-                default
-            );
-            if (result.IsError){
-                Log.Error("Error trying to upload the song file.");
-                return Fail("Error retrieving all songs",result); 
-            }
-            
-            return Ok(Result.Success);
         }
         
         [HttpGet("download")]
