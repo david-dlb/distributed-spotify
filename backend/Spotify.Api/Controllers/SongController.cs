@@ -5,6 +5,7 @@ using Serilog;
 using Spotify.Api.Controllers.Common;
 using Spotify.Application.Common.Models;
 using Spotify.Application.Songs.Commands.Create;
+using Spotify.Application.Songs.Commands.Delete;
 using Spotify.Application.Songs.Commands.Update;
 using Spotify.Application.Songs.Queries.GetAll;
 using Spotify.Application.Songs.Queries.GetChunk;
@@ -85,5 +86,19 @@ namespace Spotify.Api.Controllers
             return Ok(songsResult.Value);
         }
 
+        [HttpDelete]
+        public async Task<CommonResponse<Success>> Delete([FromQuery] Guid songId)
+        {
+            Log.Information("[DELETE] Song endpoint called.");
+            var songsResult = await _mediator.Send(new DeleteSongCommand(){
+                    Id = songId
+                }, default);
+            if (songsResult.IsError)
+            {
+                Log.Error("Error trying to update a song.");
+                return Fail("Error updating the song.",songsResult); 
+            }
+            return Ok(songsResult.Value);
+        }
     }
 }

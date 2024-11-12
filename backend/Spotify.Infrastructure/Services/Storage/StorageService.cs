@@ -6,6 +6,17 @@ namespace Spotify.Infrastructure.Services.Storage
 {
     public class StorageService : IStorageService
     {
+        public ErrorOr<Success> DeleteFile(string id)
+        {
+            var filePath = Path.Combine("../Spotify.Infrastructure/Persistence/Uploads", id);
+
+            if (!File.Exists(filePath))
+            {
+                return Error.NotFound();
+            }
+            File.Delete(filePath);
+            return Result.Success;
+        }
 
         public async Task<ErrorOr<byte[]>> ReadFileAsync(string id, ChunkRange range, CancellationToken ct)
         {
@@ -19,7 +30,6 @@ namespace Spotify.Infrastructure.Services.Storage
             long start = range.Start, end = range.End;
             var chunkSize = (int)(end - start + 1);
             var buffer = new byte[chunkSize];
-            
             using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 fileStream.Seek(start, SeekOrigin.Begin);

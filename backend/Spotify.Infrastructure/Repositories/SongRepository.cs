@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using ErrorOr;
 using Spotify.Application.Common.Interfaces;
 using Spotify.Application.Common.Models;
@@ -7,15 +8,23 @@ namespace Spotify.Infrastructure.Repositories
 {
     public class InMemorySongRepository : ISongRepository
     {
-        private static List<Song> _songs = []; 
-        public async Task<ErrorOr<List<Song>>> GetAll(PaginationModel pagination)
+        private static List<Song> _songs = [];
+
+        public async Task<ErrorOr<Success>> Delete(Guid songId, CancellationToken cancellationToken = default)
+        {
+            var song = _songs.Find(s => s.Id == songId);
+            _songs.Remove(song);
+            return Result.Success; 
+        }
+
+        public async Task<ErrorOr<List<Song>>> GetAll(PaginationModel pagination, CancellationToken cancellationToken = default)
         {
             int skip = pagination.Limit*(pagination.Page - 1);  
             var songs = _songs.Skip(skip).Take(pagination.Limit); 
             return songs.ToList();
         }
 
-        public async Task<ErrorOr<Song>> GetById(Guid songId)
+        public async Task<ErrorOr<Song>> GetById(Guid songId, CancellationToken cancellationToken = default)
         {
             var song = _songs.Find(x => x.Id == songId);
 
@@ -26,13 +35,13 @@ namespace Spotify.Infrastructure.Repositories
             return song;
         }
 
-        public async Task<ErrorOr<Song>> Save(Song song)
+        public async Task<ErrorOr<Song>> Save(Song song, CancellationToken cancellationToken = default)
         {
             _songs.Add(song);
             return song;
         }
 
-        public async Task<ErrorOr<Song>> Update(Song newSong)
+        public async Task<ErrorOr<Song>> Update(Song newSong, CancellationToken cancellationToken = default)
         {
             var song = _songs.Find(x => x.Id == newSong.Id);
             if (song == null)
