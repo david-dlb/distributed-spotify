@@ -4,6 +4,7 @@ using Spotify.Application.Common.Interfaces;
 using Spotify.Infrastructure.Repositories;
 using Spotify.Application.Common.Interfaces.Services;
 using Spotify.Infrastructure.Services.Storage;
+using Spotify.Application.Common.Interfaces.Repositories;
 
 namespace Spotify.Infrastructure
 {
@@ -13,6 +14,7 @@ namespace Spotify.Infrastructure
         {
             // Repositories
             services.AddScoped<ISongRepository,InMemorySongRepository>(); 
+            services.AddScoped<IAlbumRepository,InMemoryAlbumRepository>(); 
 
             // External Services
             services.AddScoped<IStorageService,StorageService>(); 

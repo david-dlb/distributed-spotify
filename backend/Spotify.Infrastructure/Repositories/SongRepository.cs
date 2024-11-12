@@ -1,63 +1,68 @@
 using ErrorOr;
 using Spotify.Application.Common.Interfaces;
+using Spotify.Application.Common.Interfaces.Repositories;
 using Spotify.Application.Common.Models;
+using Spotify.Domain.Common;
 using Spotify.Domain.Entities;
 
 namespace Spotify.Infrastructure.Repositories
 {
-    public class InMemorySongRepository : ISongRepository
+    public class InMemoryGenericRepository<T> where T : Entity
     {
-        private static List<Song> _songs = [];
+        private static List<T> _values = [];
 
         public async Task<ErrorOr<Success>> Delete(Guid songId, CancellationToken cancellationToken = default)
         {
-            var song = _songs.Find(s => s.Id == songId);
-            _songs.Remove(song);
+            var song = _values.Find(s => s.Id == songId);
+            _values.Remove(song);
             return Result.Success; 
         }
 
-        public async Task<ErrorOr<List<Song>>> GetAll(PaginationModel pagination, CancellationToken cancellationToken = default)
+        public async Task<ErrorOr<List<T>>> GetAll(PaginationModel pagination, CancellationToken cancellationToken = default)
         {
             int skip = pagination.Limit*(pagination.Page - 1);  
-            var songs = _songs.Skip(skip).Take(pagination.Limit); 
-            return songs.ToList();
+            var values = _values.Skip(skip).Take(pagination.Limit); 
+            return values.ToList();
         }
 
-        public async Task<ErrorOr<List<Song>>> GetAll(PaginationModel pagination, Func<Song,bool> filter, CancellationToken cancellationToken = default)
+        public async Task<ErrorOr<List<T>>> GetAll(PaginationModel pagination, Func<T,bool> filter, CancellationToken cancellationToken = default)
         {
-            var filteredSongs = _songs.Where(x => filter(x)); 
+            var filteredValues = _values.Where(x => filter(x)); 
             int skip = pagination.Limit*(pagination.Page - 1);  
-            var songs = filteredSongs.Skip(skip).Take(pagination.Limit); 
-            return songs.ToList();
+            var values = filteredValues.Skip(skip).Take(pagination.Limit); 
+            return values.ToList();
         }
 
-        public async Task<ErrorOr<Song>> GetById(Guid songId, CancellationToken cancellationToken = default)
+        public async Task<ErrorOr<T>> GetById(Guid songId, CancellationToken cancellationToken = default)
         {
-            var song = _songs.Find(x => x.Id == songId);
+            var value = _values.Find(x => x.Id == songId);
 
-            if (song == null)
+            if (value == null)
             {
                 return Error.NotFound("Song not found.");
             }
-            return song;
+            return value;
         }
 
-        public async Task<ErrorOr<Song>> Save(Song song, CancellationToken cancellationToken = default)
+        public async Task<ErrorOr<T>> Save(T value, CancellationToken cancellationToken = default)
         {
-            _songs.Add(song);
-            return song;
+            _values.Add(value);
+            return value;
         }
 
-        public async Task<ErrorOr<Song>> Update(Song newSong, CancellationToken cancellationToken = default)
+        public async Task<ErrorOr<T>> Update(T newValue, CancellationToken cancellationToken = default)
         {
-            var song = _songs.Find(x => x.Id == newSong.Id);
-            if (song == null)
+            var value = _values.Find(x => x.Id == newValue.Id);
+            if (value == null)
             {
-                return Error.NotFound("Song not found.");
+                return Error.NotFound("Value not found.");
             }
-            _songs.Remove(song); 
-            _songs.Add(newSong); 
-            return song;
+            _values.Remove(value); 
+            _values.Add(newValue); 
+            return value;
         }
-    }
+    } 
+
+    public class InMemorySongRepository : InMemoryGenericRepository<Song>, ISongRepository {}
+    public class InMemoryAlbumRepository : InMemoryGenericRepository<Album>, IAlbumRepository {}
 }
