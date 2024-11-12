@@ -12,6 +12,16 @@ Log.Logger = new LoggerConfiguration()
         outputTemplate: "[{Level}] {Timestamp:HH:mm:ss} {Message}{NewLine}")
     .CreateLogger();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -22,20 +32,36 @@ builder.Services.AddApplicationServices()
 Log.Information("Building application.");
 var app = builder.Build();
 
+app.UseCors("AllowAllOrigins");
 if (app.Environment.IsDevelopment())
 {
     Log.Information("Environment set as development.");
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Documentation v1");
+        c.RoutePrefix = string.Empty; 
+    }); 
 }
+
+app.UseHttpsRedirection();
 
 app.MapControllers();
 
 try {
-    Log.Information("The application is running.");
+    var url = builder.Configuration["ASPNETCORE_URLS"];
+    Log.Information($"The application is running at: {url}");
     app.Run();
 }catch(Exception e){
-    Log.Error("There is an error when tried to run the app.",e);
+    Log.Error(e, "There is an error when tried to run the app.");
+    Log.Error(e, "Details: {ErrorMessage}.", e.Message);
+    Log.Error(e, "StackTrace: {StackTrace}.", e.StackTrace);
+    Log.Error(e, "InnerException: {InnerException}.", e.InnerException);
 }finally{ 
     Log.Information("Shutting down the application.");
 }
+
+
+
+// curl.exe -X 'POST' 'http://localhost:5140/api/Song/upload?songId=42f79290-4ad2-4335-a3ac-873e949fb03b' -H 'accept: text/plain' -H 'Content-Type: multipart/form-data' -F 'songFile=@y2mate.com - Twenty One Pilots Greatest Hits Full Album 2024  Twenty One Pilots Best Songs Playlist 2024 Lyrics.mp3;type=audio/mpeg'
+
