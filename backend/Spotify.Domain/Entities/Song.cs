@@ -8,7 +8,9 @@ namespace Spotify.Domain.Entities
     {
         public string Name { get; private set; }
         public Guid? AuthorId { get; private set; }
+        public Author? Author { get; private set; }    
         public Guid? AlbumId { get; private set; }
+        public Album? Album { get; private set; }    
         public MusicGenre Genre { get; private set; }
         public SongMetadata? Metadata { get; private set; }
         
@@ -23,6 +25,14 @@ namespace Spotify.Domain.Entities
         }
         public static Song Create(string name, Guid? albumId, Guid? authorId, MusicGenre? genre, SongMetadata metadata){
             return new Song(name, albumId, authorId, genre ?? MusicGenre.Unknown, metadata);
+        }
+
+        public void Update(string? name, Guid? albumId, Guid? authorId, MusicGenre? genre)
+        {
+            Name = name ?? Name;  
+            AlbumId = albumId ?? AlbumId;
+            AuthorId = authorId ?? AuthorId; 
+            Genre = genre ?? Genre; 
         }
     }
 }

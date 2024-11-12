@@ -5,6 +5,7 @@ using Serilog;
 using Spotify.Api.Controllers.Common;
 using Spotify.Application.Common.Models;
 using Spotify.Application.Songs.Commands.Create;
+using Spotify.Application.Songs.Commands.Update;
 using Spotify.Application.Songs.Queries.GetAll;
 using Spotify.Application.Songs.Queries.GetChunk;
 using Spotify.Domain.Entities;
@@ -70,5 +71,19 @@ namespace Spotify.Api.Controllers
             }
             return File(result.Value, "application/octet-stream", enableRangeProcessing: true);
         }
+
+        [HttpPut]
+        public async Task<CommonResponse<Song>> Update(UpdateSongCommand input)
+        {
+            Log.Information("[UPDATE] Song endpoint called.");
+            var songsResult = await _mediator.Send(input, default);
+            if (songsResult.IsError)
+            {
+                Log.Error("Error trying to update a song.");
+                return Fail("Error updating the song.",songsResult); 
+            }
+            return Ok(songsResult.Value);
+        }
+
     }
 }

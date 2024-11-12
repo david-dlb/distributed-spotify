@@ -15,7 +15,7 @@ namespace Spotify.Infrastructure.Repositories
             return songs.ToList();
         }
 
-        public async Task<ErrorOr<Song?>> GetById(Guid songId)
+        public async Task<ErrorOr<Song>> GetById(Guid songId)
         {
             var song = _songs.Find(x => x.Id == songId);
 
@@ -32,5 +32,16 @@ namespace Spotify.Infrastructure.Repositories
             return song;
         }
 
+        public async Task<ErrorOr<Song>> Update(Song newSong)
+        {
+            var song = _songs.Find(x => x.Id == newSong.Id);
+            if (song == null)
+            {
+                return Error.NotFound("Song not found.");
+            }
+            _songs.Remove(song); 
+            _songs.Add(newSong); 
+            return song;
+        }
     }
 }
