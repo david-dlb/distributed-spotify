@@ -1,42 +1,62 @@
+using Spotify.Application;
+using Spotify.Infrastructure;
+using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
+
 var builder = WebApplication.CreateBuilder(args);
 
+Log.Logger = new LoggerConfiguration()
+    .WriteTo
+    .Console(
+        theme: AnsiConsoleTheme.Sixteen,
+        outputTemplate: "[{Level}] {Timestamp:HH:mm:ss} {Message}{NewLine}")
+    .CreateLogger();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddApplicationServices()
+    .AddInfrastructureServices(builder.Configuration); 
+
+Log.Information("Building application.");
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseCors("AllowAllOrigins");
 if (app.Environment.IsDevelopment())
 {
+    Log.Information("Environment set as development.");
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Documentation v1");
+        c.RoutePrefix = string.Empty; 
+    }); 
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.MapControllers();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
-app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+try {
+    var url = builder.Configuration["ASPNETCORE_URLS"];
+    Log.Information($"The application is running at: {url}");
+    app.Run();
+}catch(Exception e){
+    Log.Error(e, "There is an error when tried to run the app.");
+    Log.Error(e, "Details: {ErrorMessage}.", e.Message);
+    Log.Error(e, "StackTrace: {StackTrace}.", e.StackTrace);
+    Log.Error(e, "InnerException: {InnerException}.", e.InnerException);
+}finally{ 
+    Log.Information("Shutting down the application.");
 }

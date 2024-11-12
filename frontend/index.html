@@ -3,65 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproducción de Música</title>
+    <title>Spotify</title>
+    <style>
+        
+    </style>
+
+    <link rel="stylesheet" href="complements/bootstrap/css/bootstrap.min.css">
+    <link href="index.css" rel="stylesheet">
+    <link rel="stylesheet" href="font/bootstrap-icons.css">
+
+
+    <script src="complements/jquery.js"></script>
+    <script src="complements/popper.js"></script>
+    <script src="complements/bootstrap/js/bootstrap.bundle.js"></script>
+
+
 </head>
 <body>
-    <h1>Reproducción de Música en HTML</h1>
-    <button id="playButton">Iniciar Reproducción</button>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    
 
-    <script>
-        const socket = io('http://localhost:3000');
-let audioCache = []; // Almacena los chunks de audio
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <!-- Título del sitio -->
+      <a class="navbar-brand" href="#">Mi Música</a>
+  
+      <!-- Botón para colapsar el menú en dispositivos móviles -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+  
+      <!-- Contenido del navbar -->
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <!-- Puedes añadir otros elementos de navegación aquí si lo necesitas -->
+        </ul>
+  
+        <!-- Buscador -->
+        <form class="d-flex me-3">
+          <input class="form-control me-2" type="search" placeholder="Buscar canciones..." aria-label="Buscar">
+        </form>
+  
+        <!-- Botón de Agregar Canción -->
+        <button class="btn btn-success" type="button">Agregar Canción</button>
+      </div>
+    </div>
+  </nav>
 
-// Solicita la canción al servidor
-function requestSong() {
-    audioCache = []; // Limpia el caché
-    socket.emit('requestSong');
-}
 
-socket.on('chunk', ({ index, data }) => {
-    console.log(`Recibido chunk ${index}`);
-    audioCache.push(new Uint8Array(data)); // Almacena cada chunk
 
-    // Puedes iniciar la reproducción al recibir los primeros chunks
-    if (index === 1) {
-        playNextChunk();
-    }
-});
 
-socket.on('endOfSong', () => {
-    console.log('Canción completa recibida');
-    // Opcional: Marca que ya no se esperan más chunks
-});
+<!-- Sección de Álbums -->
+<div class="m-4 my-5">
+    <h2 class="text-center mb-4">Álbums Populares</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+      <!-- Card 1 -->
+      <div class="col">
+        <div class="card h-100">
+          <img src="https://via.placeholder.com/150" class="card-img-top" alt="Portada del Álbum 1">
+          <div class="card-body">
+            <h5 class="card-title">Álbum 1</h5>
+            <p class="card-text">Artista 1</p>
+          </div>
+        </div>
+      </div>
+      <!-- Card 2 -->
+      <div class="col">
+        <div class="card h-100">
+          <img src="https://via.placeholder.com/150" class="card-img-top" alt="Portada del Álbum 2">
+          <div class="card-body">
+            <h5 class="card-title">Álbum 2</h5>
+            <p class="card-text">Artista 2</p>
+          </div>
+        </div>
+      </div>
+      <!-- Card 3 -->
+      <div class="col">
+        <div class="card h-100">
+          <img src="https://via.placeholder.com/150" class="card-img-top" alt="Portada del Álbum 3">
+          <div class="card-body">
+            <h5 class="card-title">Álbum 3</h5>
+            <p class="card-text">Artista 3</p>
+          </div>
+        </div>
+      </div>
 
-let isPlaying = false;
-const playNextChunk = () => {
-    console.log(audioCache)
-    if (!isPlaying && audioCache.length > 0) {
-        const chunkData = audioCache.shift(); // Saca el chunk más viejo para reproducir
-        playAudio(chunkData); // Función para reproducir el chunk
-    }
-};
-
-const playAudio = (chunkData) => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    audioContext.decodeAudioData(chunkData.buffer, (buffer) => {
-        const source = audioContext.createBufferSource();
-        source.buffer = buffer;
-        source.connect(audioContext.destination);
-        isPlaying = true;
-        source.start(0);
-
-        source.onended = () => {
-            isPlaying = false;
-            playNextChunk();
-        };
-    });
-};
-
-// Llamar a requestSong cuando el usuario presione un botón, por ejemplo
-document.getElementById('playButton').addEventListener('click', requestSong)
-    </script>
+      <!-- Card 3 -->
+      <div class="col">
+        <div class="card h-100">
+          <img src="https://via.placeholder.com/150" class="card-img-top" alt="Portada del Álbum 3">
+          <div class="card-body">
+            <h5 class="card-title">Álbum 3</h5>
+            <p class="card-text">Artista 3</p>
+          </div>
+        </div>
+      </div>
+      <!-- Añade más tarjetas si es necesario -->
+    </div>
+  </div>
+  
+   
 </body>
 </html>
