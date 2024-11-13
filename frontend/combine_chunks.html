@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combinar Chunks</title>
+</head>
+<body>
+    <h1>Combinar Chunks en Bytes</h1>
+
+    <label for="songId">Song ID:</label>
+    <input type="text" id="songId" placeholder="Introduce el id de la canción">
+    <br><br>
+
+    <label for="initIndex">Start Byte:</label>
+    <input type="number" id="initIndex" placeholder="Introduce el byte inicial del chunk">
+    <br><br>
+
+    <label for="endIndex">End Byte:</label>
+    <input type="number" id="endIndex" placeholder="Introduce el byte final del chunk">
+    <br><br>
+
+    <button onclick="InitTest()">Test</button>
+
+    <script>
+        const host = "http://localhost:5140"; 
+        let cachedChunks = new Uint8Array(); 
+
+        async function InitTest() {
+            const songId = document.getElementById('songId').value;
+            const initIndex = parseInt(document.getElementById('initIndex').value);
+            const endIndex = parseInt(document.getElementById('endIndex').value);
+
+            const newChunk = await downloadSongChunk(songId, initIndex, endIndex); 
+            console.log("Old Bytes:" + cachedChunks.toString());
+
+            cachedChunks = combineTwoChunks(cachedChunks, newChunk); 
+
+            console.log("New Bytes:" + cachedChunks.toString());
+        }
+
+        function combineTwoChunks(chunk1, chunk2) {
+            const combinedChunk = new Uint8Array(chunk1.length + chunk2.length);
+            combinedChunk.set(chunk1, 0);
+            combinedChunk.set(chunk2, chunk1.length);
+            return combinedChunk;
+        }
+
+        async function downloadSongChunk(songId, start, end) {
+            try {
+                const response = await fetch(`${host}/api/Song/download?songId=${songId}&start=${start}&end=${end}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/octet-stream'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Error descargando el chunk de la canción');
+                }
+                const blob = await response.blob();
+                const arrayBuffer = await blob.arrayBuffer();
+                
+                const bytesFetched = new Uint8Array(arrayBuffer);
+                console.log("=========================================");
+                console.log("Fetched Bytes:" + bytesFetched.toString());
+                return bytesFetched; 
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+    </script>
+</body>
+</html>
