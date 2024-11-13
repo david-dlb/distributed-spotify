@@ -24,7 +24,7 @@
     <!-- Botones para abrir los modales -->
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarAlbum">Agregar Álbum</button>
     <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalAgregarAutor">Agregar Autor</button>
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarCancion">Agregar Canción</button>
+    <button class="btn btn-success" data-bs-toggle="modal" id="add-song" data-bs-target="#modalAgregarCancion">Agregar Canción</button>
   </div>
 </div>
 
@@ -82,7 +82,29 @@
         <form id="song">
           <div class="mb-3">
             <label for="nombreCancion" class="form-label">Nombre de la Canción</label>
-            <input type="text" class="form-control" name="name" id="nombreCancion" placeholder="Introduce el nombre de la canción">
+            <input type="text" class="form-control" name="Name" id="nombreCancion" placeholder="Introduce el nombre de la canción">
+          </div>
+          <div class="mb-3">
+            <label for="nombreCancion" class="form-label">Autor</label>
+            <select name="autor" id="autor">
+              <option class="form-control" value="as">lafk</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="nombreCancion" class="form-label">Album</label>
+            <select name="album" id="album">
+              <option class="form-control" value="as">lafk</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="nombreCancion" class="form-label">Genero</label>
+            <select name="genero" id="genero">
+              <option class="form-control" value="as">lafk</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="nombreCancion" class="form-label">archivo</label>
+            <input type="file" class="form-control" name="file" id="nombreCancion" placeholder="Introduce el nombre de la canción">
           </div>
           <button type="submit" class="btn btn-success">Guardar</button>
         </form>
@@ -93,7 +115,7 @@
  
 
 
-  <script src="server.js"></script>
+  <script src="utils/server.js"></script>
   <script src="add.js"></script>
 </body>
 </html>

@@ -4,7 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buscar Canciones</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+
+  <link rel="stylesheet" href="complements/bootstrap/css/bootstrap.min.css">
+  <link href="index.css" rel="stylesheet">
+  <link rel="stylesheet" href="font/bootstrap-icons.css">
+
+
+  <script src="complements/jquery.js"></script>
+  <script src="complements/popper.js"></script>
+  <script src="complements/bootstrap/js/bootstrap.bundle.js"></script>
 </head>
 <body>
  
@@ -103,7 +112,7 @@
     <div class="mt-5">
       <h3 class="text-center mb-4">Resultados de Búsqueda</h3>
       <table class="table table-striped">
-        <thead>
+        <thead id="songs">
           <tr>
             <th scope="col">Nombre de la Canción</th>
             <th scope="col">Autor</th>
@@ -111,7 +120,7 @@
             <th scope="col">Álbum</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody  id="songs">
           <!-- Ejemplo de canción -->
           <tr>
             <td>Canción 1</td>
@@ -138,51 +147,11 @@
   </div>
 
 
+ 
 
+ 
 
-<div class="player-container mt-5">
-    <!-- Información de la Canción -->
-    <div class="d-flex justify-content-between align-items-center">
-      <div class="song-info">
-        <img src="https://via.placeholder.com/50" alt="Carátula de álbum">
-        <div class="song-details">
-          <h5>Nombre de la Canción</h5>
-          <p>Artista • Álbum</p>
-        </div>
-      </div>
-  
-      <!-- Controles de Reproducción -->
-      <div class="controls">
-        <button onclick="anteriorCancion()">
-          <i class="bi bi-skip-backward-fill"></i>
-        </button>
-        <button onclick="togglePlay()">
-          <i class="bi bi-play-circle-fill" style="font-size: 2rem;"></i>
-        </button>
-        <button onclick="siguienteCancion()">
-          <i class="bi bi-skip-forward-fill"></i>
-        </button>
-      </div>
-  
-      <!-- Control de Volumen -->
-      <div class="volume-control">
-        <i class="bi bi-volume-down-fill"></i>
-        <input type="range" min="0" max="100" value="50" class="form-range">
-      </div>
-    </div>
-  
-    <!-- Barra de Progreso -->
-    <div class="progress-container mt-3">
-      <span>0:00</span>
-      <div class="progress-bar">
-        <div class="progress" style="width: 25%;"></div>
-      </div>
-      <span>3:45</span>
-    </div>
-  </div>
-
-
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <script src="utils/server.js"></script>
+  <script src="song.js"></script>
 </body>
 </html>
