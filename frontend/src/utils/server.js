@@ -1,4 +1,4 @@
-async function requestToServer(method, url, data, onSuccess, onError) {
+export async function requestToServer(method, url, data, onSuccess, onError) {
     try {
       // Opciones de la solicitud
       const options = {
