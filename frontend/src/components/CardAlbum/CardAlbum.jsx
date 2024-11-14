@@ -12,8 +12,7 @@ const CardAlbum = ({ albums }) => {
                     <div className="card h-100">
                     <img src="https://via.placeholder.com/150" className="card-img-top" alt="Portada del Álbum 1"/>
                     <div className="card-body">
-                        <h5 className="card-title">Álbum 1</h5>
-                        <p className="card-text">Artista 1</p>
+                        <h5 className="card-title">{ele.name}</h5>
                     </div>
                     </div>
                 </div>

@@ -1,8 +1,23 @@
 import React, { useState } from 'react'
+import { requestToServer } from '../utils/server';
 
 
 const Add = () => {
   const [count, setCount] = useState(0)
+  const [albumName, setAlbumName] = useState('');
+
+  const addAlbum = (e) => {
+    e.preventDefault()
+    const data = {
+      "name": albumName
+    }
+    console.log(data)
+    requestToServer("POST", `http://localhost:5140/api/Album`, data, (d) => {
+      console.log(d)
+    }, (e) => {
+          console.log(d)
+      })
+  }
 
   return (
     <div className="">
@@ -24,10 +39,18 @@ const Add = () => {
         <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div className="modal-body">
-        <form id="album">
+        <form id="album" onSubmit={addAlbum}>
           <div className="mb-3">
-            <label for="nombreAlbum" className="form-label">Nombre del Álbum</label>
-            <input type="text" className="form-control" name="name" id="nombreAlbum" placeholder="Introduce el nombre del álbum"/>
+            <label htmlFor="nombreAlbum" className="form-label">Nombre del Álbum</label>
+            <input 
+              type="text" 
+              className="form-control" 
+              name="name" 
+              id="nombreAlbum" 
+              value={albumName} 
+              onChange={(e) => setAlbumName(e.target.value)}
+              placeholder="Introduce el nombre del álbum"
+            />
           </div>
           <button type="submit" className="btn btn-primary">Guardar</button>
         </form>
