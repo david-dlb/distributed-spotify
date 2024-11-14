@@ -5,18 +5,53 @@ import { requestToServer } from '../utils/server';
 const Add = () => {
   const [count, setCount] = useState(0)
   const [albumName, setAlbumName] = useState('');
+  const [authorName, setAuthorName] = useState('');
+  const [albums, setAlbums] = useState([])
+  const [authors, setAuthors] = useState([])
+  
 
   const addAlbum = (e) => {
     e.preventDefault()
     const data = {
       "name": albumName
-    }
-    console.log(data)
+    } 
     requestToServer("POST", `http://localhost:5140/api/Album`, data, (d) => {
       console.log(d)
     }, (e) => {
           console.log(d)
       })
+  }
+
+  const addAuthor = (e) => {
+    e.preventDefault()
+    const data = {
+      "name": authorName
+    } 
+    requestToServer("POST", `http://localhost:5140/api/Author`, data, (d) => {
+      console.log(d)
+    }, (e) => {
+          console.log(d)
+      })
+  }
+
+  const getAlbums = async () => {
+    requestToServer("GET", `http://localhost:5140/api/Album?limit=${1000000}`, null, (d) => {
+      setAlbums(d.value)
+    }, (e) => {
+        console.log(d)
+    })
+  }
+  const getAuthors = async () => {
+    requestToServer("GET", `http://localhost:5140/api/Author?limit=${1000000}`, null, (d) => {
+      setAuthors(d.value)
+    }, (e) => {
+        console.log(d)
+    })
+  }
+
+  const modalSong = () => {
+    getAuthors()
+    getAlbums()
   }
 
   return (
@@ -27,7 +62,7 @@ const Add = () => {
   <div className="d-flex justify-content-center gap-3 mt-4">
     <button className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarAlbum">Agregar Álbum</button>
     <button className="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalAgregarAutor">Agregar Autor</button>
-    <button className="btn btn-success" data-bs-toggle="modal" id="add-song" data-bs-target="#modalAgregarCancion">Agregar Canción</button>
+    <button className="btn btn-success" data-bs-toggle="modal" onClick={modalSong} id="add-song" data-bs-target="#modalAgregarCancion">Agregar Canción</button>
   </div>
 </div>
 
@@ -67,12 +102,20 @@ const Add = () => {
         <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div className="modal-body">
-        <form id="author">
+      <form id="author" onSubmit={addAuthor}>
           <div className="mb-3">
-            <label for="nombreAutor" className="form-label">Nombre del Autor</label>
-            <input type="text" className="form-control" name="name" id="nombreAutor" placeholder="Introduce el nombre del autor"/>
+            <label htmlFor="nombreAuthor" className="form-label">Nombre del Álbum</label>
+            <input 
+              type="text" 
+              className="form-control" 
+              name="name" 
+              id="nombreAuthor" 
+              value={authorName} 
+              onChange={(e) => setAuthorName(e.target.value)}
+              placeholder="Introduce el nombre del álbum"
+            />
           </div>
-          <button type="submit" className="btn btn-secondary">Guardar</button>
+          <button type="submit" className="btn btn-primary">Guardar</button>
         </form>
       </div>
     </div>
@@ -95,13 +138,17 @@ const Add = () => {
           <div className="mb-3">
             <label for="nombreCancion" className="form-label">Autor</label>
             <select name="autor" id="autor">
-              <option className="form-control" value="as">lafk</option>
+              {authors.map(ele => (
+                <option value={ele.id}>{ele.name}</option>
+              ))}
             </select>
           </div>
           <div className="mb-3">
             <label for="nombreCancion" className="form-label">Album</label>
             <select name="album" id="album">
-              <option className="form-control" value="as">lafk</option>
+              {albums.map(ele => (
+                        <option value={ele.id}>{ele.name}</option>
+              ))}
             </select>
           </div>
           <div className="mb-3">
