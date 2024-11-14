@@ -1,46 +1,68 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { requestToServer } from '../../utils/server';
 
 
-const Filters = () => {
-    const navigate = useNavigate();
+const Filters = ({ setSongs }) => {
+    const [albums, setAlbums] = useState([])
+    const [authors, setAuthors] = useState([])
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        const searchTerm = event.target.search.value;
-        navigate(`/song?search=${encodeURIComponent(searchTerm)}`);
-    };
+    useEffect(() => {
+      const api = async () => {
+        requestToServer("GET", `http://localhost:5140/api/Album?limit=${10000000}`, null, (d) => {
+          setAlbums(d.value)
+        }, (e) => {
+            console.log(d)
+        })
+        requestToServer("GET", `http://localhost:5140/api/Author?limit=${10000000}`, null, (d) => {
+            setAuthors(d.value)
+          }, (e) => {
+              console.log(d)
+          })
+      }
+      api()
+    }, [])
 
+    const getSongs = () => {
+        
+    }
+
+    console.log(12)
     return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div className="container-fluid">
-        <a className="navbar-brand" href="#">Spotify</a>
-    
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span className="navbar-toggler-icon"></span>
-        </button>
-    
-        <div className="collapse navbar-collapse" id="navbarContent">
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            </ul>
-    
-            <form className="d-flex me-3" onSubmit={handleSubmit}>
-                <input 
-                    className="form-control me-2" 
-                    type="search" 
-                    placeholder="Buscar canciones..." 
-                    aria-label="Buscar"
-                    name="search"
-                />
-                <button type="submit" className="btn btn-success">Buscar</button>
-            </form>
-    
-            <a href="/add">
-                <button className="btn btn-success" type="button">Agregar Canción</button>
-            </a>
-        </div>
-        </div>
-    </nav>
+        <form>
+            <div className="row g-3">
+            <div className="col-md-6">
+                <label htmlFor="buscar" className="form-label">Buscar Canción</label>
+                <input type="text" className="form-control" id="buscar" placeholder="Ingresa el nombre de la canción"/>
+            </div>
+            
+            <div className="col-md-3">
+                <label htmlFor="album" className="form-label">Álbum</label>
+                <select className="form-select" id="album">
+                    {albums.map(ele => (
+                        <option value={ele.id}>{ele.name}</option>
+                    ))}
+                </select>
+            </div>
+            
+            <div className="col-md-3">
+                <label htmlFor="autor" className="form-label">Autor</label>
+                <select className="form-select" id="author">
+                    {authors.map(ele => (
+                        <option value={ele.id}>{ele.name}</option>
+                    ))}
+                </select>
+            </div>
+            
+            <div className="col-md-4">
+                <label htmlFor="genero" className="form-label">Género</label> 
+            </div>
+            
+            
+            <div className="col-md-4 d-flex align-items-end">
+                <button type="submit" className="btn btn-primary w-100">Buscar</button>
+            </div>
+            </div>
+        </form>
     )
 }
 
