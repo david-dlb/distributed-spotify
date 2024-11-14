@@ -3,6 +3,7 @@ import { requestToServer } from '../../utils/server';
 
 
 const Filters = ({ setSongs }) => {
+    const [page, setPage] = useState(0)
     const [albums, setAlbums] = useState([])
     const [authors, setAuthors] = useState([])
 
@@ -22,13 +23,25 @@ const Filters = ({ setSongs }) => {
       api()
     }, [])
 
-    const getSongs = () => {
-        
-    }
+    const getSongs = (event) => {
+        event.preventDefault();
+        const searchTerm = event.target.search.value;
+        data = {
+            page: 10,
+            limit: 10,
+            albumid: event.target.album.value,
+            authorid: event.target.author.value,
+        }
+        requestToServer("GET", `http://localhost:5140/api/Song?limit=${10000000}&page={${page}}&albumid=${data.albumid}&authorid=${data.albumid}`, null, (d) => {
+            setAuthors(d.value)
+          }, (e) => {
+              console.log(d)
+          })
+    };
+    
 
-    console.log(12)
     return (
-        <form>
+        <form onSubmit={getSongs}>
             <div className="row g-3">
             <div className="col-md-6">
                 <label htmlFor="buscar" className="form-label">Buscar Canción</label>

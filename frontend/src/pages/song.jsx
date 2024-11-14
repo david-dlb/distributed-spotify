@@ -5,6 +5,7 @@ import Filters from '../components/Filters/Filters'
 
 const Song = () => {
   const [count, setCount] = useState(0)
+  const [songs, setSongs] = useState([])
 
   return (
     <div className="">
@@ -13,7 +14,7 @@ const Song = () => {
       <div className="container my-5">
     <h2 className="text-center mb-4">Buscar Canciones</h2>
     
-    <Filters/>
+    <Filters setSongs={setSongs}/>
   
     <div className="mt-5">
       <h3 className="text-center mb-4">Resultados de Búsqueda</h3>
@@ -27,12 +28,14 @@ const Song = () => {
           </tr>
         </thead>
         <tbody  id="songs">
-          <tr>
-            <td>Canción 1</td>
-            <td>Autor 1</td>
-            <td>Rock</td>
-            <td>Álbum 1</td>
-          </tr> 
+          {songs.map(ele => (
+            <tr>
+              <td>Canción 1</td>
+              <td>Autor 1</td>
+              <td>Rock</td>
+              <td>Álbum 1</td>
+            </tr> 
+          ))}
         </tbody>
       </table>
     </div>
