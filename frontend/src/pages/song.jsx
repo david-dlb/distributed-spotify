@@ -34,7 +34,7 @@ const Song = () => {
               <td>{ele.name}</td>
               <td>{ele.author}</td>
               <td>{ele.genre}</td>
-              <td>Álbum 1</td>
+              <td>{ele.author}</td>
             </tr> 
           ))}
         </tbody>
