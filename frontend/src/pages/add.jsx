@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { requestToServer, requestToServerForm } from '../utils/server';
 
 
@@ -16,41 +16,41 @@ const Add = () => {
   const [albums, setAlbums] = useState([])
   const [authors, setAuthors] = useState([])
   const [genres, setGenres] = useState([
-        "Rock",
-        "Pop",
-        "Jazz",
-        "Blues",
-        "Classical",
-        "HipHop",
-        "Electronic",
-        "Country",
-        "Reggae",
-        "Metal",
-        "Punk",
-        "Funk",
-        "Soul",
-        "RnB",
-        "Disco",
-        "Folk",
-        "Indie",
-        "Latin",
-        "Rap",
-        "House",
-        "Techno",
-        "Dance",
-        "Ambient",
-        "Trance",
-        "Dubstep",
-        "Gospel",
-        "Opera",
-        "Grunge",
-        "Ska",
-        "Reggaeton",
-        "Swing",
-        "Synthpop",
-        "KPop",
-        "Unknow"
-  ])
+    { id: 0, name: "Rock" },
+    { id: 1, name: "Pop" },
+    { id: 2, name: "Jazz" },
+    { id: 3, name: "Blues" },
+    { id: 4, name: "Classical" },
+    { id: 5, name: "HipHop" },
+    { id: 6, name: "Electronic" },
+    { id: 7, name: "Country" },
+    { id: 8, name: "Reggae" },
+    { id: 9, name: "Metal" },
+    { id: 10, name: "Punk" },
+    { id: 11, name: "Funk" },
+    { id: 12, name: "Soul" },
+    { id: 13, name: "RnB" },
+    { id: 14, name: "Disco" },
+    { id: 15, name: "Folk" },
+    { id: 16, name: "Indie" },
+    { id: 17, name: "Latin" },
+    { id: 18, name: "Rap" },
+    { id: 19, name: "House" },
+    { id: 20, name: "Techno" },
+    { id: 21, name: "Dance" },
+    { id: 22, name: "Ambient" },
+    { id: 23, name: "Trance" },
+    { id: 24, name: "Dubstep" },
+    { id: 25, name: "Gospel" },
+    { id: 26, name: "Opera" },
+    { id: 27, name: "Grunge" },
+    { id: 28, name: "Ska" },
+    { id: 29, name: "Reggaeton" },
+    { id: 30, name: "Swing" },
+    { id: 31, name: "Synthpop" },
+    { id: 32, name: "KPop" },
+    { id: 33, name: "Unknow" }
+  ]);
   
 
   const addAlbum = (e) => {
@@ -83,52 +83,48 @@ const Add = () => {
     e.preventDefault()
     console.log(formData)
     const data = new FormData();
-data.append('songFile', new File([formData.SongFile], 'FormatFactory05 - Me derrumbo.mp3', { type: 'audio/mpeg' }));
-data.append('AlbumId', '37bdc78c-b077-43e8-8122-5ec115a8adcc');
-data.append('AuthorId', '1ce8ddaa-0cee-4a08-89e2-23f48bb65f66');
-data.append('Genre', '1');
-data.append('Name', 'ad');
+    data.append('songFile', new File([formData.SongFile], null, { type: 'audio/mpeg' }));
+    data.append('AlbumId', formData.AlbumId);
+    data.append('AuthorId', formData.AuthorId);
+    data.append('Genre', formData.Genre);
+    data.append('Name', formData.Name);
 
-fetch('http://localhost:5140/api/Song', {
-  method: 'POST',
-  headers: {
-    'accept': 'text/plain',
-  },
-  body: data,
-})
-  .then(response => response.text())
-  .then(data => console.log(data))
-  .catch(error => console.error('Error:', error));
-
-
+    fetch('http://localhost:5140/api/Song', {
+      method: 'POST',
+      headers: {
+        'accept': 'text/plain',
+      },
+      body: data,
+    })
+      .then(response => response.text())
+      .then(data => console.log(data))
+      .catch(error => console.error('Error:', error));
   }
 
   const getAlbums = async () => {
     requestToServer("GET", `http://localhost:5140/api/Album?limit=${1000000}`, null, (d) => {
-      setAlbums(d.value)
-      setFormData({
-        ...formData,
-        ["AlbumId"]: d.value[0].id
-      });
+      setAlbums(d.value) 
     }, (e) => {
         console.log(d)
     })
   }
   const getAuthors = async () => {
     requestToServer("GET", `http://localhost:5140/api/Author?limit=${1000000}`, null, (d) => {
-      setAuthors(d.value)
-      console.log(d.value)
-      setFormData({
-        ...formData,
-        ["AuthorId"]: d.value[0].id
-      });
+      setAuthors(d.value) 
     }, (e) => {
         console.log(d)
     })
   }
 
-  const handleInputChange = (e) => {
-    
+  const handleInputChange = (e) => { 
+    const { name, value } = e.target;
+    console.log(name, value)
+     
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      [name]: value
+    }));
+     
   };
   const handleFileChange = (e) => {
     setFormData({
@@ -142,6 +138,25 @@ fetch('http://localhost:5140/api/Song', {
     getAlbums()
   }
 
+
+  useEffect(() => {
+    if (albums.length > 0) {
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        "AlbumId": albums[0].id
+      }));
+      
+    }
+  }, [albums]);
+  useEffect(() => {
+    if (authors.length > 0) {
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        "AuthorId": authors[0].id
+      }));
+    }
+  }, [authors])
+
   return (
     <div className="">
       
@@ -154,7 +169,7 @@ fetch('http://localhost:5140/api/Song', {
   </div>
 </div>
 
-<div className="modal fade" id="modalAgregarAlbum" tabindex="-1" aria-labelledby="modalAgregarAlbumLabel" aria-hidden="true">
+<div className="modal fade" id="modalAgregarAlbum" tabIndex="-1" aria-labelledby="modalAgregarAlbumLabel" aria-hidden="true">
   <div className="modal-dialog">
     <div className="modal-content">
       <div className="modal-header">
@@ -182,7 +197,7 @@ fetch('http://localhost:5140/api/Song', {
   </div>
 </div>
 
-<div className="modal fade" id="modalAgregarAutor" tabindex="-1" aria-labelledby="modalAgregarAutorLabel" aria-hidden="true">
+<div className="modal fade" id="modalAgregarAutor" tabIndex="-1" aria-labelledby="modalAgregarAutorLabel" aria-hidden="true">
   <div className="modal-dialog">
     <div className="modal-content">
       <div className="modal-header">
@@ -210,7 +225,7 @@ fetch('http://localhost:5140/api/Song', {
   </div>
 </div>
 
-<div className="modal fade" id="modalAgregarCancion" tabindex="-1" aria-labelledby="modalAgregarCancionLabel" aria-hidden="true">
+<div className="modal fade" id="modalAgregarCancion" tabIndex="-1" aria-labelledby="modalAgregarCancionLabel" aria-hidden="true">
   <div className="modal-dialog">
     <div className="modal-content">
       <div className="modal-header">
@@ -224,7 +239,7 @@ fetch('http://localhost:5140/api/Song', {
             <input 
               type="text" 
               className="form-control" 
-              name="songName"
+              name="Name"
               id="nombreCancion"
               value={formData.songName}
               onChange={handleInputChange}
@@ -235,9 +250,9 @@ fetch('http://localhost:5140/api/Song', {
           <div className="mb-3">
             <label htmlFor="autor" className="form-label">Autor</label>
             <select 
-              name="authorId" 
+              name="AuthorId" 
               id="autor"
-              value={formData.authorId}
+              value={formData.AuthorId}
               onChange={handleInputChange}
             >
               {authors.map(ele => (
@@ -249,9 +264,9 @@ fetch('http://localhost:5140/api/Song', {
           <div className="mb-3">
             <label htmlFor="album" className="form-label">Album</label>
             <select 
-              name="albumId"
+              name="AlbumId"
               id="album"
-              value={formData.albumId}
+              value={formData.AlbumId}
               onChange={handleInputChange}
             >
               {albums.map(ele => (
@@ -265,11 +280,11 @@ fetch('http://localhost:5140/api/Song', {
             <select 
               name="Genre"
               id="Genre"
-              value={1}
+              value={formData.Genre}
               onChange={handleInputChange}
             >
               {genres.map(ele => (
-                <option key={ele.id} value={ele}>{ele}</option>
+                <option key={ele.id} value={ele.id}>{ele.name}</option>
               ))}
             </select>
           </div>
