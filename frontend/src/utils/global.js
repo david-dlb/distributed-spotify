@@ -38,5 +38,6 @@ export const genres =[
 
 export const getGenreNameById = (id) => {
     const genre = genres.find(g => g.id === id);
+    console.log(id, genre)
     return genre ? genre.name : "Género desconocido";
 }

@@ -11,7 +11,7 @@ const Add = () => {
     Name: '',
     AuthorId: '',
     AlbumId: '',
-    Genre: '',
+    Genre: genres[0].id,
     SongFile: null
   });
   const [authorName, setAuthorName] = useState('');
@@ -248,6 +248,7 @@ const Add = () => {
                     value={formData.Genre}
                     onChange={handleInputChange}
                   >
+                    <option value={null} selected disabled>Seleccionar genero</option>
                     {genres.map(ele => (
                       <option key={ele.id} value={ele.id}>{ele.name}</option>
                     ))}

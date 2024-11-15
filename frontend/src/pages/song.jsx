@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Navbar from '../components/Navbar/Navbar'
 import Filters from '../components/Filters/Filters'
+import { getGenreNameById } from '../utils/global'
 
 
 const Song = () => {
@@ -32,7 +33,7 @@ const Song = () => {
             <tr key={ele.id}>
               <td>{ele.name}</td>
               <td>{ele.author}</td>
-              <td>Rock</td>
+              <td>{ele.genre}</td>
               <td>Álbum 1</td>
             </tr> 
           ))}
