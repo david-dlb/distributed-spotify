@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { requestToServer } from '../../utils/server';
-import { genres } from '../../utils/global';
+import { genres, getGenreNameById } from '../../utils/global';
 
 
 const Filters = ({ setSongs }) => {
@@ -50,10 +50,34 @@ const Filters = ({ setSongs }) => {
         if (data.pattern) {
             url += `&pattern=${data.pattern}`
         }
-        requestToServer("GET", url, null, (d) => {
+        requestToServer("GET", url, null, async (d) => {
             console.log(d)
-            setSongs(d.value)
-            
+            let songs = []
+            for (let index = 0; index < d.value.length; index++) {
+                const ele = d.value[index];
+                const albumDetails = await requestToServer("GET", `/Album?limit=1&pattern=${ele.albumId}`, null, (d) => {
+                    console.log(d);
+                    return d.value;
+                }, (e) => {
+                    console.error(e);
+                    return null;
+                });
+                
+                const authorDetails = await requestToServer("GET", `/Author?limit=1&pattern=${ele.authorId}`, null, (d) => {
+                    console.log(d);
+                    return d.value;
+                }, (e) => {
+                    console.error(e);
+                    return null;
+                });
+                songs.push({
+                    ...ele,
+                    "author": authorDetails,
+                    "album": albumDetails,
+                    "genre": getGenreNameById(ele.genre)
+                })
+            }
+            setSongs(songs)
           }, (e) => {
             console.log(e)
           })

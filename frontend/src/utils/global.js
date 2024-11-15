@@ -34,3 +34,9 @@ export const genres =[
     { id: 32, name: "KPop" },
     { id: 33, name: "Unknow" }
 ];
+
+
+export const getGenreNameById = (id) => {
+    const genre = genres.find(g => g.id === id);
+    return genre ? genre.name : "Género desconocido";
+}
