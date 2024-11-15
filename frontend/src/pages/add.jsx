@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { requestToServer, requestToServerForm } from '../utils/server';
+import { baseUrl, requestToServer, requestToServerForm } from '../utils/server';
 import { genres } from '../utils/global';
+import Navbar from '../components/Navbar/Navbar';
 
 
 const Add = () => {
@@ -55,7 +56,7 @@ const Add = () => {
     data.append('Genre', formData.Genre);
     data.append('Name', formData.Name);
 
-    fetch('/Song', {
+    fetch(`${baseUrl}/Song`, {
       method: 'POST',
       headers: {
         'accept': 'text/plain',
@@ -123,153 +124,153 @@ const Add = () => {
 
   return (
     <div className="">
-      
-<div className="container my-5">
-  <h2 className="text-center">Modales de Agregar</h2>
-  <div className="d-flex justify-content-center gap-3 mt-4">
-    <button className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarAlbum">Agregar Álbum</button>
-    <button className="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalAgregarAutor">Agregar Autor</button>
-    <button className="btn btn-success" data-bs-toggle="modal" onClick={modalSong} id="add-song" data-bs-target="#modalAgregarCancion">Agregar Canción</button>
-  </div>
-</div>
-
-<div className="modal fade" id="modalAgregarAlbum" tabIndex="-1" aria-labelledby="modalAgregarAlbumLabel" aria-hidden="true">
-  <div className="modal-dialog">
-    <div className="modal-content">
-      <div className="modal-header">
-        <h5 className="modal-title" id="modalAgregarAlbumLabel">Agregar Álbum</h5>
-        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <Navbar/>
+      <div className="container my-5">
+        <h2 className="text-center">Modales de Agregar</h2>
+        <div className="d-flex justify-content-center gap-3 mt-4">
+          <button className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarAlbum">Agregar Álbum</button>
+          <button className="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalAgregarAutor">Agregar Autor</button>
+          <button className="btn btn-success" data-bs-toggle="modal" onClick={modalSong} id="add-song" data-bs-target="#modalAgregarCancion">Agregar Canción</button>
+        </div>
       </div>
-      <div className="modal-body">
-        <form id="album" onSubmit={addAlbum}>
-          <div className="mb-3">
-            <label htmlFor="nombreAlbum" className="form-label">Nombre del Álbum</label>
-            <input 
-              type="text" 
-              className="form-control" 
-              name="name" 
-              id="nombreAlbum" 
-              value={albumName} 
-              onChange={(e) => setAlbumName(e.target.value)}
-              placeholder="Introduce el nombre del álbum"
-            />
+
+      <div className="modal fade" id="modalAgregarAlbum" tabIndex="-1" aria-labelledby="modalAgregarAlbumLabel" aria-hidden="true">
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="modalAgregarAlbumLabel">Agregar Álbum</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              <form id="album" onSubmit={addAlbum}>
+                <div className="mb-3">
+                  <label htmlFor="nombreAlbum" className="form-label">Nombre del Álbum</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    name="name" 
+                    id="nombreAlbum" 
+                    value={albumName} 
+                    onChange={(e) => setAlbumName(e.target.value)}
+                    placeholder="Introduce el nombre del álbum"
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary">Guardar</button>
+              </form>
+            </div>
           </div>
-          <button type="submit" className="btn btn-primary">Guardar</button>
-        </form>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
 
-<div className="modal fade" id="modalAgregarAutor" tabIndex="-1" aria-labelledby="modalAgregarAutorLabel" aria-hidden="true">
-  <div className="modal-dialog">
-    <div className="modal-content">
-      <div className="modal-header">
-        <h5 className="modal-title" id="modalAgregarAutorLabel">Agregar Autor</h5>
-        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div className="modal fade" id="modalAgregarAutor" tabIndex="-1" aria-labelledby="modalAgregarAutorLabel" aria-hidden="true">
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="modalAgregarAutorLabel">Agregar Autor</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+            <form id="author" onSubmit={addAuthor}>
+                <div className="mb-3">
+                  <label htmlFor="nombreAuthor" className="form-label">Nombre del Álbum</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    name="name" 
+                    id="nombreAuthor" 
+                    value={authorName} 
+                    onChange={(e) => setAuthorName(e.target.value)}
+                    placeholder="Introduce el nombre del álbum"
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary">Guardar</button>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="modal-body">
-      <form id="author" onSubmit={addAuthor}>
-          <div className="mb-3">
-            <label htmlFor="nombreAuthor" className="form-label">Nombre del Álbum</label>
-            <input 
-              type="text" 
-              className="form-control" 
-              name="name" 
-              id="nombreAuthor" 
-              value={authorName} 
-              onChange={(e) => setAuthorName(e.target.value)}
-              placeholder="Introduce el nombre del álbum"
-            />
+
+      <div className="modal fade" id="modalAgregarCancion" tabIndex="-1" aria-labelledby="modalAgregarCancionLabel" aria-hidden="true">
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="modalAgregarCancionLabel">Agregar Canción</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              <form id="song" onSubmit={addSong}>
+                <div className="mb-3">
+                  <label htmlFor="nombreCancion" className="form-label">Nombre de la Canción</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    name="Name"
+                    id="nombreCancion"
+                    value={formData.songName}
+                    onChange={handleInputChange}
+                    placeholder="Introduce el nombre de la canción"
+                  />
+                </div>
+                
+                <div className="mb-3">
+                  <label htmlFor="autor" className="form-label">Autor</label>
+                  <select 
+                    name="AuthorId" 
+                    id="autor"
+                    value={formData.AuthorId}
+                    onChange={handleInputChange}
+                  >
+                    {authors.map(ele => (
+                      <option key={ele.id} value={ele.id}>{ele.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="album" className="form-label">Album</label>
+                  <select 
+                    name="AlbumId"
+                    id="album"
+                    value={formData.AlbumId}
+                    onChange={handleInputChange}
+                  >
+                    {albums.map(ele => (
+                      <option key={ele.id} value={ele.id}>{ele.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="genero" className="form-label">Genero</label>
+                  <select 
+                    name="Genre"
+                    id="Genre"
+                    value={formData.Genre}
+                    onChange={handleInputChange}
+                  >
+                    {genres.map(ele => (
+                      <option key={ele.id} value={ele.id}>{ele.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="nombreCancion" className="form-label">Archivo</label>
+                  <input 
+                    type="file" 
+                    className="form-control" 
+                    name="file"
+                    id="nombreCancion"
+                    onChange={handleFileChange}
+                  />
+                </div>
+
+                <button type="submit" className="btn btn-success">Guardar</button>
+              </form>
+            </div>
           </div>
-          <button type="submit" className="btn btn-primary">Guardar</button>
-        </form>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-
-<div className="modal fade" id="modalAgregarCancion" tabIndex="-1" aria-labelledby="modalAgregarCancionLabel" aria-hidden="true">
-  <div className="modal-dialog">
-    <div className="modal-content">
-      <div className="modal-header">
-        <h5 className="modal-title" id="modalAgregarCancionLabel">Agregar Canción</h5>
-        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div className="modal-body">
-        <form id="song" onSubmit={addSong}>
-          <div className="mb-3">
-            <label htmlFor="nombreCancion" className="form-label">Nombre de la Canción</label>
-            <input 
-              type="text" 
-              className="form-control" 
-              name="Name"
-              id="nombreCancion"
-              value={formData.songName}
-              onChange={handleInputChange}
-              placeholder="Introduce el nombre de la canción"
-            />
-          </div>
-          
-          <div className="mb-3">
-            <label htmlFor="autor" className="form-label">Autor</label>
-            <select 
-              name="AuthorId" 
-              id="autor"
-              value={formData.AuthorId}
-              onChange={handleInputChange}
-            >
-              {authors.map(ele => (
-                <option key={ele.id} value={ele.id}>{ele.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="album" className="form-label">Album</label>
-            <select 
-              name="AlbumId"
-              id="album"
-              value={formData.AlbumId}
-              onChange={handleInputChange}
-            >
-              {albums.map(ele => (
-                <option key={ele.id} value={ele.id}>{ele.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="genero" className="form-label">Genero</label>
-            <select 
-              name="Genre"
-              id="Genre"
-              value={formData.Genre}
-              onChange={handleInputChange}
-            >
-              {genres.map(ele => (
-                <option key={ele.id} value={ele.id}>{ele.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="nombreCancion" className="form-label">Archivo</label>
-            <input 
-              type="file" 
-              className="form-control" 
-              name="file"
-              id="nombreCancion"
-              onChange={handleFileChange}
-            />
-          </div>
-
-          <button type="submit" className="btn btn-success">Guardar</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
     </div>
   )
 }

@@ -46,7 +46,7 @@ const Filters = ({ setSongs }) => {
         }
         if (data.authorId) {
             url += `&authorId=${data.authorId}`
-        }
+        } 
         if (data.pattern) {
             url += `&pattern=${data.pattern}`
         }
@@ -117,6 +117,7 @@ const Filters = ({ setSongs }) => {
                     value={formData.AlbumId}
                     onChange={handleInputChange}
                     >
+                    <option value={null}></option>
                     {albums.map(ele => (
                         <option key={ele.id} value={ele.id}>{ele.name}</option>
                     ))}
@@ -131,25 +132,13 @@ const Filters = ({ setSongs }) => {
                     value={formData.AuthorId}
                     onChange={handleInputChange}
                     >
+                    <option value={null}></option>
                     {authors.map(ele => (
                         <option key={ele.id} value={ele.id}>{ele.name}</option>
                     ))}
                 </select>
             </div>
-            
-            <div className="col-md-4">
-                <label htmlFor="genero" className="form-label">Género</label> 
-                <select 
-                    name="Genre"
-                    id="Genre"
-                    value={formData.Genre}
-                    onChange={handleInputChange}
-                    >
-                    {genres.map(ele => (
-                        <option key={ele.id} value={ele.id}>{ele.name}</option>
-                    ))}
-                </select>
-            </div>
+             
             
             
             <div className="col-md-4 d-flex align-items-end">
