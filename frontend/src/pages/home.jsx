@@ -10,7 +10,7 @@ const Home = () => {
 
   useEffect(() => {
     const api = async () => {
-      requestToServer("GET", `http://localhost:5140/api/Album?limit=${10}`, null, (d) => {
+      requestToServer("GET", `/Album?limit=${10}`, null, (d) => {
         setAlbums(d.value)
       }, (e) => {
           console.log(d)

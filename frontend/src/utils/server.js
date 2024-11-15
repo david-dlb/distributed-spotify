@@ -1,3 +1,4 @@
+export const baseUrl = "`http://localhost:5140/api"
 export async function requestToServer(method, url, data, onSuccess, onError) {
   try {
     // Opciones de la solicitud
@@ -12,9 +13,10 @@ export async function requestToServer(method, url, data, onSuccess, onError) {
     if (data && method !== 'GET') {
       options.body = JSON.stringify(data);
     }
-
+    const urlF = baseUrl + url
+    console.log(baseUrl, url, baseUrl + url)
     // Hacer la solicitud con fetch
-    const response = await fetch(url, options);
+    const response = await fetch(urlF, options);
     
     // Comprobar si la respuesta fue exitosa
     if (!response.ok) {
@@ -34,7 +36,7 @@ export async function requestToServer(method, url, data, onSuccess, onError) {
   
 
 export async function requestToServerForm(method, url, data, onSuccess, onError) {
-  fetch(url, {
+  fetch(baseUrl + url, {
     'method': method, 
     'headers': {
         // 'Content-Type': 'application/json',

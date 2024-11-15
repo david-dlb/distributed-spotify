@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { requestToServer, requestToServerForm } from '../utils/server';
+import { genres } from '../utils/global';
 
 
 const Add = () => {
@@ -15,42 +16,7 @@ const Add = () => {
   const [authorName, setAuthorName] = useState('');
   const [albums, setAlbums] = useState([])
   const [authors, setAuthors] = useState([])
-  const [genres, setGenres] = useState([
-    { id: 0, name: "Rock" },
-    { id: 1, name: "Pop" },
-    { id: 2, name: "Jazz" },
-    { id: 3, name: "Blues" },
-    { id: 4, name: "Classical" },
-    { id: 5, name: "HipHop" },
-    { id: 6, name: "Electronic" },
-    { id: 7, name: "Country" },
-    { id: 8, name: "Reggae" },
-    { id: 9, name: "Metal" },
-    { id: 10, name: "Punk" },
-    { id: 11, name: "Funk" },
-    { id: 12, name: "Soul" },
-    { id: 13, name: "RnB" },
-    { id: 14, name: "Disco" },
-    { id: 15, name: "Folk" },
-    { id: 16, name: "Indie" },
-    { id: 17, name: "Latin" },
-    { id: 18, name: "Rap" },
-    { id: 19, name: "House" },
-    { id: 20, name: "Techno" },
-    { id: 21, name: "Dance" },
-    { id: 22, name: "Ambient" },
-    { id: 23, name: "Trance" },
-    { id: 24, name: "Dubstep" },
-    { id: 25, name: "Gospel" },
-    { id: 26, name: "Opera" },
-    { id: 27, name: "Grunge" },
-    { id: 28, name: "Ska" },
-    { id: 29, name: "Reggaeton" },
-    { id: 30, name: "Swing" },
-    { id: 31, name: "Synthpop" },
-    { id: 32, name: "KPop" },
-    { id: 33, name: "Unknow" }
-  ]);
+  
   
 
   const addAlbum = (e) => {
@@ -58,11 +24,11 @@ const Add = () => {
     const data = {
       "name": albumName
     } 
-    requestToServer("POST", `http://localhost:5140/api/Album`, data, (d) => {
+    requestToServer("POST", `/Album`, data, (d) => {
       console.log(d)
       setAlbumName("")
-    }, (e) => {
-          console.log(d)
+    }, (err) => {
+          console.log(err)
       })
   }
 
@@ -71,11 +37,11 @@ const Add = () => {
     const data = {
       "name": authorName
     } 
-    requestToServer("POST", `http://localhost:5140/api/Author`, data, (d) => {
+    requestToServer("POST", `/Author`, data, (d) => {
       console.log(d)
       setAuthorName("")
-    }, (e) => {
-          console.log(d)
+    }, (err) => {
+          console.log(e)
       })
   }
   
@@ -89,7 +55,7 @@ const Add = () => {
     data.append('Genre', formData.Genre);
     data.append('Name', formData.Name);
 
-    fetch('http://localhost:5140/api/Song', {
+    fetch('/Song', {
       method: 'POST',
       headers: {
         'accept': 'text/plain',
@@ -102,14 +68,14 @@ const Add = () => {
   }
 
   const getAlbums = async () => {
-    requestToServer("GET", `http://localhost:5140/api/Album?limit=${1000000}`, null, (d) => {
+    requestToServer("GET", `/Album?limit=${1000000}`, null, (d) => {
       setAlbums(d.value) 
     }, (e) => {
         console.log(d)
     })
   }
   const getAuthors = async () => {
-    requestToServer("GET", `http://localhost:5140/api/Author?limit=${1000000}`, null, (d) => {
+    requestToServer("GET", `/Author?limit=${1000000}`, null, (d) => {
       setAuthors(d.value) 
     }, (e) => {
         console.log(d)
@@ -118,13 +84,11 @@ const Add = () => {
 
   const handleInputChange = (e) => { 
     const { name, value } = e.target;
-    console.log(name, value)
      
     setFormData(prevFormData => ({
       ...prevFormData,
       [name]: value
     }));
-     
   };
   const handleFileChange = (e) => {
     setFormData({
