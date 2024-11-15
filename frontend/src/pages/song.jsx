@@ -1,12 +1,19 @@
 import React, { useState } from 'react'
 import Navbar from '../components/Navbar/Navbar'
 import Filters from '../components/Filters/Filters'
-import { getGenreNameById } from '../utils/global'
 
 
 const Song = () => {
   const [count, setCount] = useState(0)
   const [songs, setSongs] = useState([])
+
+  const startSong = (id) => {
+    requestToServer("GET", `/Song/download?songId=${id}`, null, (d) => {
+      setAuthors(d.value)
+    }, (e) => {
+        console.log(d)
+    })
+  }
 
   return (
     <div className="">
@@ -30,11 +37,12 @@ const Song = () => {
         </thead>
         <tbody  id="songs">
           {songs.map(ele => (
-            <tr key={ele.id}>
-              <td>{ele.name}</td>
-              <td>{ele.author}</td>
-              <td>{ele.genre}</td>
-              <td>{ele.author}</td>
+            <tr>
+              <td onClick={() => startSong(ele.id)}>Reproducir</td>
+              <td>Canción 1</td>
+              <td>Autor 1</td>
+              <td>Rock</td>
+              <td>Álbum 1</td>
             </tr> 
           ))}
         </tbody>
