@@ -1,4 +1,4 @@
-export const baseUrl = "`http://localhost:5140/api"
+export const baseUrl = "http://localhost:5140/api"
 export async function requestToServer(method, url, data, onSuccess, onError) {
   try {
     // Opciones de la solicitud

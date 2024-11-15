@@ -30,8 +30,8 @@ const Song = () => {
         <tbody  id="songs">
           {songs.map(ele => (
             <tr>
-              <td>Canción 1</td>
-              <td>Autor 1</td>
+              <td>{ele.name}</td>
+              <td>{ele.author}</td>
               <td>Rock</td>
               <td>Álbum 1</td>
             </tr> 

@@ -53,6 +53,7 @@ const Filters = ({ setSongs }) => {
         requestToServer("GET", url, null, (d) => {
             console.log(d)
             setSongs(d.value)
+            
           }, (e) => {
             console.log(e)
           })
