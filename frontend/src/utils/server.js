@@ -13,8 +13,7 @@ export async function requestToServer(method, url, data, onSuccess, onError) {
     if (data && method !== 'GET') {
       options.body = JSON.stringify(data);
     }
-    const urlF = baseUrl + url
-    console.log(baseUrl, url, baseUrl + url)
+    const urlF = baseUrl + url 
     // Hacer la solicitud con fetch
     const response = await fetch(urlF, options);
     

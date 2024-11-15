@@ -29,7 +29,7 @@ const Song = () => {
         </thead>
         <tbody  id="songs">
           {songs.map(ele => (
-            <tr>
+            <tr key={ele.id}>
               <td>{ele.name}</td>
               <td>{ele.author}</td>
               <td>Rock</td>

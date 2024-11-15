@@ -56,7 +56,6 @@ const Filters = ({ setSongs }) => {
             for (let index = 0; index < d.value.length; index++) {
                 const ele = d.value[index];
                 const albumDetails = await requestToServer("GET", `/Album?limit=1&pattern=${ele.albumId}`, null, (d) => {
-                    console.log(d);
                     return d.value;
                 }, (e) => {
                     console.error(e);
@@ -64,12 +63,12 @@ const Filters = ({ setSongs }) => {
                 });
                 
                 const authorDetails = await requestToServer("GET", `/Author?limit=1&pattern=${ele.authorId}`, null, (d) => {
-                    console.log(d);
                     return d.value;
                 }, (e) => {
                     console.error(e);
                     return null;
                 });
+                console.log(albumDetails, authorDetails, ele)
                 songs.push({
                     ...ele,
                     "author": authorDetails,
@@ -77,6 +76,7 @@ const Filters = ({ setSongs }) => {
                     "genre": getGenreNameById(ele.genre)
                 })
             }
+            console.log(songs)
             setSongs(songs)
           }, (e) => {
             console.log(e)
