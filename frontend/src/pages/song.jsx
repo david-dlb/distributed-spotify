@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar/Navbar'
 import Filters from '../components/Filters/Filters'
+import Add from './add'
 
 
 const Song = () => {
   const [page, setPage] = useState(0)
   const [songs, setSongs] = useState([])
+  const [reload, setReload] = useState(false)
 
   const startSong = (id) => {
     requestToServer("GET", `/Song/download?songId=${id}`, null, (d) => {
@@ -38,8 +40,9 @@ const Song = () => {
 
       <div className="container my-5">
     <h2 className="text-center mb-4">Buscar Canciones</h2>
+    <Add reload={() => setReload(!reload)}/>
     
-    <Filters setSongs={setSongs} page={page}/>
+    <Filters setSongs={setSongs} page={page} reload={reload}/>
   
     <div className="mt-5">
       <h3 className="text-center mb-4">Resultados de Búsqueda</h3>

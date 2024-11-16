@@ -56,7 +56,7 @@ export async function requestToServerForm(method, url, data, onSuccess, onError)
 
     // Intentar convertir la respuesta a JSON
     const result = await response.json();
-    
+    console.log(result)
     if (!response.ok) {
       handleErrorWithSweetAlert(result.title)
       throw new Error(`Error en la solicitud: ${response.status}`);

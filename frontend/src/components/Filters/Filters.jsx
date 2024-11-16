@@ -3,7 +3,7 @@ import { requestToServer } from '../../utils/server';
 import { genres, getGenreNameById } from '../../utils/global';
 
 
-const Filters = ({ setSongs, page }) => {
+const Filters = ({ setSongs, page, reload }) => {
     const [albums, setAlbums] = useState([])
     const [authors, setAuthors] = useState([])
     const [formData, setFormData] = useState({
@@ -12,7 +12,7 @@ const Filters = ({ setSongs, page }) => {
         AlbumId: '',
         Genre: '',
         SongFile: null
-      });
+    });
 
     useEffect(() => {
       const api = async () => {
@@ -94,8 +94,7 @@ const Filters = ({ setSongs, page }) => {
     
     useEffect(() => {
         getSongs()
-    }, [page])
-    
+    }, [page, reload])
 
     return (
         <form onSubmit={getSongs}>
