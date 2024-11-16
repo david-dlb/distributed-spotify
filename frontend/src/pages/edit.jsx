@@ -5,8 +5,7 @@ import Navbar from '../components/Navbar/Navbar';
 import { handleErrorWithSweetAlert } from '../utils/alert';
 
 
-const Add = ({ setSongs, reload }) => {
-  const [albumName, setAlbumName] = useState('');
+const Edit = ({ setSongs, reload }) => {
   const [formData, setFormData] = useState({
     Name: '',
     AuthorId: '',
@@ -14,7 +13,6 @@ const Add = ({ setSongs, reload }) => {
     Genre: genres[0].id,
     SongFile: null
   });
-  const [authorName, setAuthorName] = useState('');
   const [albums, setAlbums] = useState([])
   const [authors, setAuthors] = useState([])
   
@@ -99,18 +97,13 @@ const Add = ({ setSongs, reload }) => {
   }, [authors])
 
   return (
-    <div className="">
-      <div className="container my-5">
-        <div className="d-flex justify-content-center gap-3 mt-4">
-          <button className="btn btn-success" onClick={modalSong} id="add-song" data-bs-toggle="modal" data-bs-target="#modalAgregarCancion">Agregar Canción</button>
-        </div>
-      </div>
+    <div className=""> 
 
-      <div className="modal fade" id="modalAgregarCancion" tabIndex="-1" aria-labelledby="modalAgregarCancionLabel" aria-hidden="true">
+      <div className="modal fade" id="modalEditarCancion" tabIndex="-1" aria-labelledby="modalEditarCancionLabel" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="modalAgregarCancionLabel">Agregar Canción</h5>
+              <h5 className="modal-title" id="modalEditarCancionLabel">Editar Canción</h5>
               <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div className="modal-body">
@@ -192,4 +185,4 @@ const Add = ({ setSongs, reload }) => {
   )
 }
 
-export default Add
+export default Edit
