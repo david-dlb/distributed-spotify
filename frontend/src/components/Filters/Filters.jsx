@@ -40,7 +40,7 @@ const Filters = ({ setSongs, page }) => {
             authorId: formData.AuthorId,
             pattern: formData.Name
         }
-        let url = `/Song?limit=${10000000}&page=${page}`
+        let url = `/Song?limit=${10}&page=${page}`
         if (data.albumId) {
             url += `&albumId=${data.albumId}`
         }

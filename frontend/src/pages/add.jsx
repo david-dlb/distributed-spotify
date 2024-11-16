@@ -57,20 +57,9 @@ const Add = () => {
     data.append('Genre', formData.Genre);
     data.append('Name', formData.Name);
 
-    requestToServerForm("POST", "Song", data, (d) => {
+    requestToServerForm("POST", "/Song", data, (d) => {
       console.log(d)
     }, (e) => {})
-
-    // fetch(`${baseUrl}/Song`, {
-    //   method: 'POST',
-    //   headers: {
-    //     // 'accept': 'text/plain',
-    //   },
-    //   body: data,
-    // })
-    //   .then(response => response.json())
-    //   .then(data =>     console.log(data))
-    //   .catch(error => console.error('Error:', error));
   }
 
   const getAlbums = async () => {

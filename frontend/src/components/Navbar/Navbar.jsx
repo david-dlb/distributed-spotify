@@ -34,9 +34,11 @@ const Navbar = () => {
                 />
                 <button type="submit" className="btn btn-success">Buscar</button>
             </form>
-    
-            <a href="/add">
-                <button className="btn btn-success" type="button">Agregar Canción</button>
+            <a href="/add-album">
+                <button className="btn btn-success" type="button">Agregar Album</button>
+            </a>
+            <a href="/add-author">
+                <button className="btn btn-success ms-2" type="button">Agregar Autor</button>
             </a>
         </div>
         </div>
