@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { baseUrl, requestToServer, requestToServerForm } from '../utils/server';
 import { genres } from '../utils/global';
 import Navbar from '../components/Navbar/Navbar';
+import { handleErrorWithSweetAlert } from '../utils/alert';
 
 
 const Add = () => {
@@ -51,35 +52,39 @@ const Add = () => {
     console.log(formData)
     const data = new FormData();
     data.append('songFile', new File([formData.SongFile], null, { type: 'audio/mpeg' }));
-    data.append('AlbumId', formData.AlbumId);
+    data.append('AlbumId', "formData.AlbumId");
     data.append('AuthorId', formData.AuthorId);
     data.append('Genre', formData.Genre);
     data.append('Name', formData.Name);
 
-    fetch(`${baseUrl}/Song`, {
-      method: 'POST',
-      headers: {
-        'accept': 'text/plain',
-      },
-      body: data,
-    })
-      .then(response => response.text())
-      .then(data => console.log(data))
-      .catch(error => console.error('Error:', error));
+    requestToServerForm("POST", "Song", data, (d) => {
+      console.log(d)
+    }, (e) => {})
+
+    // fetch(`${baseUrl}/Song`, {
+    //   method: 'POST',
+    //   headers: {
+    //     // 'accept': 'text/plain',
+    //   },
+    //   body: data,
+    // })
+    //   .then(response => response.json())
+    //   .then(data =>     console.log(data))
+    //   .catch(error => console.error('Error:', error));
   }
 
   const getAlbums = async () => {
     requestToServer("GET", `/Album?limit=${1000000}`, null, (d) => {
       setAlbums(d.value) 
     }, (e) => {
-        console.log(d)
+        console.log(e)
     })
   }
   const getAuthors = async () => {
     requestToServer("GET", `/Author?limit=${1000000}`, null, (d) => {
       setAuthors(d.value) 
     }, (e) => {
-        console.log(d)
+        console.log(e)
     })
   }
 

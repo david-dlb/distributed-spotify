@@ -3,8 +3,7 @@ import { requestToServer } from '../../utils/server';
 import { genres, getGenreNameById } from '../../utils/global';
 
 
-const Filters = ({ setSongs }) => {
-    const [page, setPage] = useState(0)
+const Filters = ({ setSongs, page }) => {
     const [albums, setAlbums] = useState([])
     const [authors, setAuthors] = useState([])
     const [formData, setFormData] = useState({
@@ -30,11 +29,12 @@ const Filters = ({ setSongs }) => {
       }
       api()
     }, [])
+    
 
-    const getSongs = (event) => {
-        event.preventDefault();
+    const getSongs = (event = null) => {
+        if (event != null)event.preventDefault();
         const data = {
-            page: 10,
+            page: page - 1,
             limit: 10,
             albumId: formData.AlbumId,
             authorId: formData.AuthorId,
@@ -90,7 +90,11 @@ const Filters = ({ setSongs }) => {
           ...prevFormData,
           [name]: value
         }));
-      };
+    };
+    
+    useEffect(() => {
+        getSongs()
+    }, [page])
     
 
     return (
