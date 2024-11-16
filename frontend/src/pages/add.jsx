@@ -157,14 +157,14 @@ const Add = ({ setSongs, reload }) => {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="genero" className="form-label">Genero</label>
+                  <label htmlFor="Género" className="form-label">Género</label>
                   <select 
                     name="Genre"
                     id="Genre"
                     value={formData.Genre}
                     onChange={handleInputChange}
                   >
-                    <option value={null} selected disabled>Seleccionar genero</option>
+                    <option value={null} selected disabled>Seleccionar Género</option>
                     {genres.map(ele => (
                       <option key={ele.id} value={ele.id}>{ele.name}</option>
                     ))}

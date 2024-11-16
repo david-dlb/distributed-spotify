@@ -72,7 +72,7 @@ const Song = () => {
             </thead>
             <tbody  id="songs">
               {songs.map((ele, index) => (
-                <tr key={Index}>
+                <tr key={index}>
                   <td onClick={() => startSong(ele.id)}>Reproducir</td>
                   <td>{ele.name}</td>
                   <td>{ele.author}</td>
@@ -94,7 +94,7 @@ const Song = () => {
           </div> : <></> }
         </div>
       </div>
-      <Edit id={id}/>
+      <Edit id={id} reload={() => setReload(!reload)}/>
     </div>
   )
 }

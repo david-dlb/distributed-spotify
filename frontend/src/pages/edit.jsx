@@ -6,8 +6,8 @@ import { genres } from '../utils/global';
 const Edit = ({ id, setSongs, reload }) => {
   const [formData, setFormData] = useState({
     Name: '',
-    AuthorId: '',
-    AlbumId: '',
+    AuthorId: null,
+    AlbumId: null,
     Genre: genres[0].id,
     id: id
   });
@@ -22,7 +22,7 @@ const Edit = ({ id, setSongs, reload }) => {
     const data = {
       'albumId': formData.AlbumId,
       'authorId': formData.AuthorId,
-      'genre': formData.Genre,
+      'genre': parseInt(formData.Genre),
       'name': formData.Name,
       'id': id
     }
@@ -32,8 +32,8 @@ const Edit = ({ id, setSongs, reload }) => {
       console.log(d)
       setFormData({
         Name: '',
-        AuthorId: '',
-        AlbumId: '',
+        AuthorId: null,
+        AlbumId: null,
         Genre: genres[0].id
       });
       reload()
@@ -111,7 +111,7 @@ const Edit = ({ id, setSongs, reload }) => {
                     className="form-control" 
                     name="Name"
                     id="nombreCancion"
-                    value={formData.songName}
+                    value={formData.Name}
                     onChange={handleInputChange}
                     placeholder="Introduce el nombre de la canción"
                   />
@@ -146,21 +146,19 @@ const Edit = ({ id, setSongs, reload }) => {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="genero" className="form-label">Genero</label>
+                  <label htmlFor="Género" className="form-label">Género</label>
                   <select 
                     name="Genre"
                     id="Genre"
                     value={formData.Genre}
-                    onChange={handleInputChange}
-                  >
-                    <option value={null} selected disabled>Seleccionar genero</option>
+                    onChange={handleInputChange} >
+                    <option value={null} selected disabled>Seleccionar género</option>
                     {genres.map(ele => (
                       <option key={ele.id} value={ele.id}>{ele.name}</option>
                     ))}
                   </select>
                 </div>
  
-
                 <button type="submit" className="btn btn-success">Guardar</button>
               </form>
             </div>
