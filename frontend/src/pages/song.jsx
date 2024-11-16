@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar/Navbar'
 import Filters from '../components/Filters/Filters'
 import Add from './add'
+import { requestToServer } from '../utils/server'
 
 
 const Song = () => {
@@ -25,10 +26,15 @@ const Song = () => {
     }
   }
 
+  const deleted = (id) => {
+    requestToServer("DELETE", `/Song?SongId=${id}`, null, (d) => {
+      setReload()
+    }, (e) => {
+        console.log(e)
+    })
+  } 
+
   useEffect(() => {
-    if (songs.length > 0) {
-      setPage(1)
-    }
     if (songs.length == 0 && page > 0) {
       setPage(page - 1)
     }
@@ -54,6 +60,8 @@ const Song = () => {
             <th scope="col">Autor</th>
             <th scope="col">Género</th>
             <th scope="col">Álbum</th>
+            <th scope="col"></th>
+            <th scope="col"></th>
           </tr>
         </thead>
         <tbody  id="songs">
@@ -64,6 +72,8 @@ const Song = () => {
               <td>{ele.author}</td>
               <td>{ele.genre}</td>
               <td>{ele.album}</td>
+              <td>editar</td>
+              <td className='cursor' onClick={() => deleted(ele.id)}>borrar</td>
             </tr> 
           ))}
         </tbody>
