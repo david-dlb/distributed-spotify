@@ -13,7 +13,7 @@ const Home = () => {
       requestToServer("GET", `/Album?limit=${10}`, null, (d) => {
         setAlbums(d.value)
       }, (e) => {
-          console.log(d)
+          console.log(e)
       })
     }
     api()

@@ -19,12 +19,12 @@ const Filters = ({ setSongs, page, reload }) => {
         requestToServer("GET", `/Album?limit=${10000000}`, null, (d) => {
           setAlbums(d.value)
         }, (e) => {
-            console.log(d)
+            (d)
         })
         requestToServer("GET", `/Author?limit=${10000000}`, null, (d) => {
             setAuthors(d.value)
           }, (e) => {
-              console.log(d)
+              (d)
           })
       }
       api()
@@ -51,7 +51,7 @@ const Filters = ({ setSongs, page, reload }) => {
             url += `&pattern=${data.pattern}`
         }
         requestToServer("GET", url, null, async (d) => {
-            console.log(d)
+            (d)
             let songs = []
             for (let index = 0; index < d.value.length; index++) {
                 const ele = d.value[index];
@@ -68,7 +68,7 @@ const Filters = ({ setSongs, page, reload }) => {
                     console.error(e);
                     return null;
                 });
-                console.log(albumDetails, authorDetails, ele)
+                (albumDetails, authorDetails, ele)
                 songs.push({
                     ...ele,
                     "author": authorDetails,
@@ -76,10 +76,10 @@ const Filters = ({ setSongs, page, reload }) => {
                     "genre": getGenreNameById(ele.genre)
                 })
             }
-            console.log(songs)
+            (songs)
             setSongs(songs)
           }, (e) => {
-            console.log(e)
+            (e)
           })
     };
 

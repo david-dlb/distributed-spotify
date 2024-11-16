@@ -19,19 +19,20 @@ export async function requestToServer(method, url, data, onSuccess, onError) {
     // Hacer la solicitud con fetch
     const response = await fetch(urlF, options);
     
+    // Intentar convertir la respuesta a JSON
+    const result = await response.json();
     // Comprobar si la respuesta fue exitosa
     if (!response.ok) {
+      console.log(result)
+      handleErrorWithSweetAlert(result.title)
       throw new Error(`Error en la solicitud: ${response.status}`);
     }
 
-    // Intentar convertir la respuesta a JSON
-    const result = await response.json();
     
     // Llamar a la función de éxito pasando el resultado
     onSuccess(result);
   } catch (error) {
     // Llamar a la función de error pasando el mensaje de error
-    console.log("error")
     handleErrorWithSweetAlert(error.message)
     onError(error.message);
   }
@@ -56,8 +57,9 @@ export async function requestToServerForm(method, url, data, onSuccess, onError)
 
     // Intentar convertir la respuesta a JSON
     const result = await response.json();
-    console.log(result)
+    
     if (!response.ok) {
+      console.log(result)
       handleErrorWithSweetAlert(result.title)
       throw new Error(`Error en la solicitud: ${response.status}`);
     }
@@ -66,7 +68,6 @@ export async function requestToServerForm(method, url, data, onSuccess, onError)
     onSuccess(result);
   } catch (error) {
     // Llamar a la función de error pasando el mensaje de error
-    console.log(error)
     onError(error.message);
   }
 }

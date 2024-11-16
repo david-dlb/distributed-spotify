@@ -10,12 +10,13 @@ const Song = () => {
   const [page, setPage] = useState(0)
   const [songs, setSongs] = useState([])
   const [reload, setReload] = useState(false)
+  const [id, setId] = useState(null)
 
   const startSong = (id) => {
     requestToServer("GET", `/Song/download?songId=${id}`, null, (d) => {
       setAuthors(d.value)
     }, (e) => {
-        console.log(d)
+        console.log(e)
     })
   }
 
@@ -70,14 +71,14 @@ const Song = () => {
               </tr>
             </thead>
             <tbody  id="songs">
-              {songs.map(ele => (
-                <tr>
+              {songs.map((ele, index) => (
+                <tr key={Index}>
                   <td onClick={() => startSong(ele.id)}>Reproducir</td>
                   <td>{ele.name}</td>
                   <td>{ele.author}</td>
                   <td>{ele.genre}</td>
                   <td>{ele.album}</td>
-                  <td className='cursor' data-bs-toggle="modal" data-bs-target="#modalEditarCancion" onClick={() => setEdit(id)}>editar</td>
+                  <td className='cursor' data-bs-toggle="modal" data-bs-target="#modalEditarCancion" onClick={() => setId(ele.id)}>editar</td>
                   <td className='cursor' onClick={() => deleted(ele.id)}>borrar</td>
                 </tr> 
               ))}
@@ -93,7 +94,7 @@ const Song = () => {
           </div> : <></> }
         </div>
       </div>
-      <Edit/>
+      <Edit id={id}/>
     </div>
   )
 }

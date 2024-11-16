@@ -23,7 +23,7 @@ const Add = ({ setSongs, reload }) => {
   
   const addSong = (e) => {
     e.preventDefault()
-    console.log(formData)
+    (formData)
     const data = new FormData();
     data.append('songFile', new File([formData.SongFile], null, { type: 'audio/mpeg' }));
     data.append('AlbumId', formData.AlbumId);
@@ -32,7 +32,7 @@ const Add = ({ setSongs, reload }) => {
     data.append('Name', formData.Name);
 
     requestToServerForm("POST", "/Song", data, (d) => {
-      console.log(d)
+      (d)
       setFormData({
         Name: '',
         AuthorId: '',
@@ -48,14 +48,14 @@ const Add = ({ setSongs, reload }) => {
     requestToServer("GET", `/Album?limit=${1000000}`, null, (d) => {
       setAlbums(d.value) 
     }, (e) => {
-        console.log(e)
+        (e)
     })
   }
   const getAuthors = async () => {
     requestToServer("GET", `/Author?limit=${1000000}`, null, (d) => {
       setAuthors(d.value) 
     }, (e) => {
-        console.log(e)
+        (e)
     })
   }
 

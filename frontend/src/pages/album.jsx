@@ -16,7 +16,7 @@ const Album = () => {
       "name": albumName
     } 
     requestToServer("POST", `/Album`, data, (d) => {
-      console.log(d)
+      (d)
       setAlbumName("")
       getAlbums()
       setPage(1)

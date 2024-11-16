@@ -16,7 +16,6 @@ const Author = () => {
       "name": authorName
     } 
     requestToServer("POST", `/Author`, data, (d) => {
-      console.log(d)
       setAuthorName("")
       getAuthors()
       setPage(1)

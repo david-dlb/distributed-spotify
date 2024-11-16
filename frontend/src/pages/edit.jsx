@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { baseUrl, requestToServer, requestToServerForm } from '../utils/server';
+import { requestToServer } from '../utils/server';
 import { genres } from '../utils/global';
-import Navbar from '../components/Navbar/Navbar';
-import { handleErrorWithSweetAlert } from '../utils/alert';
 
 
-const Edit = ({ setSongs, reload }) => {
+const Edit = ({ id, setSongs, reload }) => {
   const [formData, setFormData] = useState({
     Name: '',
     AuthorId: '',
     AlbumId: '',
     Genre: genres[0].id,
-    SongFile: null
+    id: id
   });
   const [albums, setAlbums] = useState([])
   const [authors, setAuthors] = useState([])
@@ -21,22 +19,22 @@ const Edit = ({ setSongs, reload }) => {
   
   const addSong = (e) => {
     e.preventDefault()
-    console.log(formData)
-    const data = new FormData();
-    data.append('songFile', new File([formData.SongFile], null, { type: 'audio/mpeg' }));
-    data.append('AlbumId', formData.AlbumId);
-    data.append('AuthorId', formData.AuthorId);
-    data.append('Genre', formData.Genre);
-    data.append('Name', formData.Name);
+    const data = {
+      'albumId': formData.AlbumId,
+      'authorId': formData.AuthorId,
+      'genre': formData.Genre,
+      'name': formData.Name,
+      'id': id
+    }
 
-    requestToServerForm("POST", "/Song", data, (d) => {
+    console.log(data)
+    requestToServer("PUT", "/Song", data, (d) => {
       console.log(d)
       setFormData({
         Name: '',
         AuthorId: '',
         AlbumId: '',
-        Genre: genres[0].id,
-        SongFile: null
+        Genre: genres[0].id
       });
       reload()
     }, (e) => {})
@@ -65,12 +63,10 @@ const Edit = ({ setSongs, reload }) => {
       [name]: value
     }));
   };
-  const handleFileChange = (e) => {
-    setFormData({
-      ...formData,
-      file: e.target.files[0]
-    });
-  };
+
+  useEffect(() => {
+    modalSong()
+  }, [])
 
   const modalSong = () => {
     getAuthors()
@@ -163,17 +159,7 @@ const Edit = ({ setSongs, reload }) => {
                     ))}
                   </select>
                 </div>
-
-                <div className="mb-3">
-                  <label htmlFor="nombreCancion" className="form-label">Archivo</label>
-                  <input 
-                    type="file" 
-                    className="form-control" 
-                    name="file"
-                    id="nombreCancion"
-                    onChange={handleFileChange}
-                  />
-                </div>
+ 
 
                 <button type="submit" className="btn btn-success">Guardar</button>
               </form>
