@@ -22,10 +22,12 @@ namespace Spotify.Application.Authors.Queries.GetAll
             var result = await _AuthorRepository.GetAll(request.Pagination,(x) => SimpleFilterFunc(request.Filter,x), cancellationToken); 
             return result;
         }
-        private static bool SimpleFilterFunc(AuthorFilterModel model, Author Author)
+        private static bool SimpleFilterFunc(AuthorFilterModel model, Author author)
         {
             // Simple and efficient enough
-            if(model.Pattern != null && !Regex.IsMatch(Author.Name, model.Pattern))
+            if(model.Id != null && model.Id != author.Id)
+                return false;
+            if(model.Pattern != null && !Regex.IsMatch(author.Name, model.Pattern))
                 return false; 
             return true; 
         }

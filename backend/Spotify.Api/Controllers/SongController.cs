@@ -11,6 +11,7 @@ using Spotify.Application.Songs.Queries.GetAll;
 using Spotify.Application.Songs.Queries.GetChunk;
 using Spotify.Application.Songs.Queries.GetChunkIndexed;
 using Spotify.Domain.Entities;
+using Spotify.Domain.Enums;
 using Spotify.Domain.ValueObjects;
 
 namespace Spotify.Api.Controllers
@@ -27,7 +28,9 @@ namespace Spotify.Api.Controllers
             [FromQuery]int limit,
             [FromQuery] Guid? albumId,
             [FromQuery] Guid? authorId,
-            [FromQuery] string? pattern
+            [FromQuery] string? pattern,
+            [FromQuery] MusicGenre? genre,
+            [FromQuery] Guid? id
         )
         {
             Log.Information("[GET ALL] Songs endpoint called.");
@@ -37,7 +40,9 @@ namespace Spotify.Api.Controllers
                     new SongFilterModel(){
                         AlbumId = albumId, 
                         AuthorId = authorId,
-                        Pattern = pattern
+                        Pattern = pattern,
+                        Id = id,
+                        Genre = genre
                     } ), default);
             if (songsResult.IsError)
             {
