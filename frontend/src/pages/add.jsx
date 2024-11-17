@@ -23,7 +23,6 @@ const Add = ({ setSongs, reload }) => {
   
   const addSong = (e) => {
     e.preventDefault()
-    (formData)
     const data = new FormData();
     data.append('songFile', new File([formData.SongFile], null, { type: 'audio/mpeg' }));
     data.append('AlbumId', formData.AlbumId);

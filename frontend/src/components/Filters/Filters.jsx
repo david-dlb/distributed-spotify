@@ -76,7 +76,6 @@ const Filters = ({ setSongs, page, reload }) => {
                     "genre": getGenreNameById(ele.genre)
                 })
             }
-            (songs)
             setSongs(songs)
           }, (e) => {
             (e)

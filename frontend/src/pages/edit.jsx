@@ -26,10 +26,9 @@ const Edit = ({ id, setSongs, reload }) => {
       'name': formData.Name,
       'id': id
     }
-
-    console.log(data)
+ 
     requestToServer("PUT", "/Song", data, (d) => {
-      console.log(d)
+ 
       setFormData({
         Name: '',
         AuthorId: null,
