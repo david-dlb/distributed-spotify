@@ -24,7 +24,7 @@ public static class SongMapper
             AlbumId = song.AlbumId,
             Author = song.Author,
             AuthorId = song.AuthorId,
-            ChunksCount = song?.Metadata?.Chunks.Count ?? 0,
+            ChunksCount = song?.Metadata?.Chunks?.Count ?? 0,
             Genre = song!.Genre,
             Name = song!.Name
         };

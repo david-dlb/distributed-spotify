@@ -7,7 +7,7 @@ namespace Spotify.Domain.ValueObjects
     {
         public long FrameCount { get; private set; }  
         public List<long> FrameSizes { get; private set; }
-        public List<ChunkRange> Chunks { get; private set; }
+        public List<ChunkRange> Chunks { get; set; }
         public long BytesLength { get; private set; }
 
         public SongMetadata() { }

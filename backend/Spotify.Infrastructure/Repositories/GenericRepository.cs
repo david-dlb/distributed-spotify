@@ -36,12 +36,17 @@ namespace Spotify.Infrastructure.Repositories
         public async Task<ErrorOr<List<T>>> GetAll(PaginationModel pagination, Func<T,bool> filter, CancellationToken cancellationToken = default)
         {
             int skip = pagination.Limit*(pagination.Page - 1);  
-            var _values = _context.GetTable<T>(); 
-              
-            // filter = _values.Where .Skip(skip)
-            //     .Take(pagination.Limit);
-            var values = await _values.ToListAsync(cancellationToken);
-            return values;
+            var table = _context.GetTable<T>(); 
+            // TODO: Improve this way too much... 
+            // The filtering is being made in memory which reduce performance because of several reasons: 
+            // 1- More data to send from db. 
+            // 2- Memory space wasted without needs
+            // 3- Uci like approach xd.
+            // Could be improved with LINQ operations and IQueryable but I feel lazy...     
+            var values = await table.ToListAsync(cancellationToken);
+            var filtered = values.Where(x => filter(x));
+            var result = filtered.Skip(skip).Take(pagination.Limit).ToList(); 
+            return result;             
         }
 
         public async Task<ErrorOr<T>> GetById(Guid songId, CancellationToken cancellationToken = default)
@@ -79,23 +84,6 @@ namespace Spotify.Infrastructure.Repositories
     }
 
     public class SongRepository(SpotifyDbContext context) : GenericRepository<Song>(context), ISongRepository{}
-    public class AlbumRepository(SpotifyDbContext context) : GenericRepository<Album>(context), IAlbumRepository
-    {
-        public Task<ErrorOr<List<Album>>> GetAll(PaginationModel pagination, Func<Album, bool> filter, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-    }
-    public class AuthorRepository(SpotifyDbContext context) : GenericRepository<Author>(context), IAuthorRepository
-    {
-        public Task<ErrorOr<List<Author>>> GetAll(PaginationModel pagination, IQueryable<Album> filter, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ErrorOr<List<Author>>> GetAll(PaginationModel pagination, Func<Author, bool> filter, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public class AlbumRepository(SpotifyDbContext context) : GenericRepository<Album>(context), IAlbumRepository{}
+    public class AuthorRepository(SpotifyDbContext context) : GenericRepository<Author>(context), IAuthorRepository{}
 }
