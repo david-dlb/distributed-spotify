@@ -14,5 +14,6 @@ namespace Spotify.Domain.Entities
         {
             return new Author(name);
         }
+        public Author() { }
     }
 }

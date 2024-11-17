@@ -61,9 +61,32 @@ namespace Spotify.Infrastructure.Repositories
             _values.Add(newValue); 
             return value;
         }
-    } 
+    }
 
-    public class InMemorySongRepository : InMemoryGenericRepository<Song>, ISongRepository {}
-    public class InMemoryAlbumRepository : InMemoryGenericRepository<Album>, IAlbumRepository {}
-    public class InMemoryAuthorRepository : InMemoryGenericRepository<Author>, IAuthorRepository {}
+    public class InMemorySongRepository : InMemoryGenericRepository<Song>, ISongRepository
+    {
+        public Task<ErrorOr<List<Song>>> GetAll(PaginationModel pagination, Func<Album, bool> filter, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ErrorOr<List<Song>>> GetAll(PaginationModel pagination, IQueryable<Album> filter, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class InMemoryAlbumRepository : InMemoryGenericRepository<Album>, IAlbumRepository
+    {
+        public Task<ErrorOr<List<Album>>> GetAll(PaginationModel pagination, IQueryable<Album> filter, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class InMemoryAuthorRepository : InMemoryGenericRepository<Author>, IAuthorRepository
+    {
+        public Task<ErrorOr<List<Author>>> GetAll(PaginationModel pagination, IQueryable<Album> filter, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

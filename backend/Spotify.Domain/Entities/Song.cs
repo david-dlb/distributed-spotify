@@ -14,6 +14,8 @@ namespace Spotify.Domain.Entities
         public MusicGenre Genre { get; private set; }
         public SongMetadata? Metadata { get; private set; }
         
+        // Needed for EF
+        public Song() { }
         private Song(string name,Guid? album, Guid? author,MusicGenre genre)
         {
             Name = name;
