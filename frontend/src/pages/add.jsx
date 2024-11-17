@@ -22,7 +22,7 @@ const Add = ({ setSongs, reload }) => {
 
   
   const addSong = (e) => {
-    e.preventDefault()
+    if (e && e.preventDefault) e.preventDefault();
     (formData)
     const data = new FormData();
     data.append('songFile', new File([formData.SongFile], null, { type: 'audio/mpeg' }));
@@ -70,7 +70,7 @@ const Add = ({ setSongs, reload }) => {
   const handleFileChange = (e) => {
     setFormData({
       ...formData,
-      file: e.target.files[0]
+      SongFile: e.target.files[0]
     });
   };
 

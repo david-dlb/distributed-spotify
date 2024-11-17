@@ -750,3 +750,4 @@ appsettings.Development.json
 tye.yaml
 
 *.db
+spotify.db
