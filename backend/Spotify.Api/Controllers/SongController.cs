@@ -9,7 +9,9 @@ using Spotify.Application.Songs.Commands.Delete;
 using Spotify.Application.Songs.Commands.Update;
 using Spotify.Application.Songs.Queries.GetAll;
 using Spotify.Application.Songs.Queries.GetChunk;
+using Spotify.Application.Songs.Queries.GetChunkIndexed;
 using Spotify.Domain.Entities;
+using Spotify.Domain.Enums;
 using Spotify.Domain.ValueObjects;
 
 namespace Spotify.Api.Controllers
@@ -21,12 +23,14 @@ namespace Spotify.Api.Controllers
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        public async Task<CommonResponse<List<Song>>> GetAll(
+        public async Task<CommonResponse<List<SongDto>>> GetAll(
             [FromQuery]int page,
             [FromQuery]int limit,
             [FromQuery] Guid? albumId,
             [FromQuery] Guid? authorId,
-            [FromQuery] string? pattern
+            [FromQuery] string? pattern,
+            [FromQuery] MusicGenre? genre,
+            [FromQuery] Guid? id
         )
         {
             Log.Information("[GET ALL] Songs endpoint called.");
@@ -36,39 +40,40 @@ namespace Spotify.Api.Controllers
                     new SongFilterModel(){
                         AlbumId = albumId, 
                         AuthorId = authorId,
-                        Pattern = pattern
+                        Pattern = pattern,
+                        Id = id,
+                        Genre = genre
                     } ), default);
             if (songsResult.IsError)
             {
                 Log.Error("Error trying to get the songs.");               
-                return Fail("Error retrieving all songs",songsResult); 
+                return Fail<List<SongDto>>("Error retrieving all songs"); 
             }
-            return Ok(songsResult.Value);
+            return Ok(songsResult.Value.Select(x => x.ToDto()).ToList());
         }
 
         
         [HttpPost]
-        public async Task<CommonResponse<Song>> Create(IFormFile songFile, [FromForm] CreateSongModel input)
+        public async Task<CommonResponse<SongDto>> Create(IFormFile songFile, [FromForm] CreateSongModel input)
         {
             Log.Information("[CREATE] Song endpoint called.");
             if (songFile == null || songFile.Length == 0)
-                return Fail<Song>("There is not any file.");
+                return Fail<SongDto>("There is not any file.");
 
             var songsResult = await _mediator.Send(new CreateSongCommand(){
                 AlbumId = input.AlbumId,
                 AuthorId = input.AuthorId,
                 Genre = input.Genre,
                 Name = input.Name ?? songFile.FileName,
-                Metadata = new SongMetadata(songFile.Length),
                 Stream = songFile.OpenReadStream()
             }, default);
             
             if (songsResult.IsError)
             {
                 Log.Error("Error trying to create a song.");
-                return Fail("Error creating the song.",songsResult); 
+                return Fail<SongDto>("Error creating the song."); 
             }
-            return Ok(songsResult.Value);
+            return Ok(songsResult.Value.ToDto());
         }
         
         [HttpGet("download")]
@@ -77,6 +82,21 @@ namespace Spotify.Api.Controllers
             Log.Information("[DOWNLOAD] Song endpoint called.");
             var result = await _mediator.Send(
                 new GetChunkSongQuery(songId, new ChunkRange(start,end)),
+                default
+            );
+            if (result.IsError){
+                Log.Error("Error trying to download the file song.");
+                return Problem();
+            }
+            return File(result.Value, "application/octet-stream", enableRangeProcessing: true);
+        }
+
+        [HttpGet("download/indexed")]
+        public async Task<IActionResult> DownloadSongChunkIndexed([FromQuery] Guid songId, [FromQuery] int index)
+        {
+            Log.Information("[DOWNLOAD] Song endpoint called.");
+            var result = await _mediator.Send(
+                new GetChunkIndexedSongQuery(songId, index),
                 default
             );
             if (result.IsError){

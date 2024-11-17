@@ -21,7 +21,8 @@ namespace Spotify.Api.Controllers
         public async Task<CommonResponse<List<Album>>> GetAll(
             [FromQuery]int page,
             [FromQuery]int limit,
-            [FromQuery] string? pattern
+            [FromQuery] string? pattern,
+            [FromQuery] Guid? Id
         )
         {
             Log.Information("[GET ALL] Albums endpoint called.");
@@ -29,7 +30,8 @@ namespace Spotify.Api.Controllers
                 new GetAllAlbumQuery(
                     new PaginationModel(page,limit),
                     new AlbumFilterModel(){
-                        Pattern = pattern
+                        Pattern = pattern,
+                        Id = Id
                     } ), default);
             if (albumsResult.IsError)
             {

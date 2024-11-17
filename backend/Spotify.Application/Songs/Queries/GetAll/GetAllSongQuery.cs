@@ -26,6 +26,8 @@ namespace Spotify.Application.Songs.Queries.GetAll
         private static bool SimpleFilterFunc(SongFilterModel model, Song song)
         {
             // Simple and efficient enough
+            if(model.Id != null && song.Id != model.Id)
+                return false; 
             if(model.AuthorId != null && song.AuthorId != model.AuthorId)
                 return false; 
             if(model.AlbumId != null && song.AlbumId != model.AlbumId)

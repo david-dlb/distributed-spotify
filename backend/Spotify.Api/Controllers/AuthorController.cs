@@ -21,7 +21,8 @@ namespace Spotify.Api.Controllers
         public async Task<CommonResponse<List<Author>>> GetAll(
             [FromQuery]int page,
             [FromQuery]int limit,
-            [FromQuery] string? pattern
+            [FromQuery] string? pattern,
+            [FromQuery] Guid? id
         )
         {
             Log.Information("[GET ALL] Authors endpoint called.");
@@ -29,7 +30,8 @@ namespace Spotify.Api.Controllers
                 new GetAllAuthorQuery(
                     new PaginationModel(page,limit),
                     new AuthorFilterModel(){
-                        Pattern = pattern
+                        Pattern = pattern,
+                        Id = id
                     } ), default);
             if (authorsResult.IsError)
             {

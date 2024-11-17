@@ -22,10 +22,13 @@ namespace Spotify.Application.Albums.Queries.GetAll
             var result = await _AlbumRepository.GetAll(request.Pagination,(x) => SimpleFilterFunc(request.Filter,x), cancellationToken); 
             return result;
         }
-        private static bool SimpleFilterFunc(AlbumFilterModel model, Album Album)
+        private static bool SimpleFilterFunc(AlbumFilterModel model, Album album)
         {
             // Simple and efficient enough
-            if(model.Pattern != null && !Regex.IsMatch(Album.Name, model.Pattern))
+            if(model.Id != null && model.Id != album.Id)
+                return false; 
+
+            if(model.Pattern != null && !Regex.IsMatch(album.Name, model.Pattern))
                 return false; 
             return true; 
         }
