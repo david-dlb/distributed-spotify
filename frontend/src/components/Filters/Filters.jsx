@@ -54,11 +54,11 @@ const Filters = ({ setSongs, page, reload }) => {
             let songs = []
             for (let index = 0; index < d.value.length; index++) {
                 const ele = d.value[index];
-                let albumDetails = ele.albumId
-                let authorDetails = ele.authorId
-                if (ele.AlbumId) {
-                    albumDetails = await requestToServer("GET", `/Album?limit=1&id=${ele.albumId}`, null, (d) => {
-                        return d.value;
+                let albumDetails = null
+                let authorDetails = null
+                if (ele.albumId) {
+                    await requestToServer("GET", `/Album?limit=1&id=${ele.albumId}`, null, (d) => {
+                        albumDetails = d.value[0];
                     }, (e) => {
                         console.error(e);
                         return null;
@@ -66,13 +66,13 @@ const Filters = ({ setSongs, page, reload }) => {
                 }
                 if (ele.authorId) {
                     authorDetails = await requestToServer("GET", `/Author?limit=1&id=${ele.authorId}`, null, (d) => {
-                        return d.value;
+                        authorDetails = d.value[0];
                     }, (e) => {
                         console.error(e);
                         return null;
                     });   
                 }
-                console.log(albumDetails, authorDetails, ele)
+                // console.log(albumDetails, authorDetails, ele)
                 songs.push({
                     ...ele,
                     "author": authorDetails,
@@ -80,7 +80,8 @@ const Filters = ({ setSongs, page, reload }) => {
                     "genre": getGenreNameById(ele.genre)
                 })
             }
-            setSongs(d.value)
+            console.log(songs)
+            setSongs(songs)
           }, (e) => {
             (e)
           })

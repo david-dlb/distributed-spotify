@@ -77,7 +77,7 @@ const Song = () => {
                   <td>{ele.name}</td>
                   <td>{ele.author ? ele.author.name : <></>}</td>
                   <td>{ele.genre ? ele.genre.name : <></>}</td>
-                  <td>{ele.album}</td>
+                  <td>{ele.album ? ele.album.name : <></>}</td>
                   <td className='cursor' data-bs-toggle="modal" data-bs-target="#modalEditarCancion" onClick={() => setId(ele.id)}>editar</td>
                   <td className='cursor' onClick={() => deleted(ele.id)}>borrar</td>
                 </tr> 
