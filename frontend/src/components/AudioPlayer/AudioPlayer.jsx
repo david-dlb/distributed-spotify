@@ -1,13 +1,12 @@
 import React, { useState, useRef } from 'react';
 
-const AudioPlayer = () => {
+const AudioPlayer = ({ songId, songCount }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [songId, setSongId] = useState('');
   const audioContextRef = useRef(new (window.AudioContext || window.webkitAudioContext)());
   const sourceListRef = useRef([]);
   const sourceDurationRef = useRef([]);
   const chunkIndexRef = useRef(0);
-  const chunkCount = 3;
+  const chunkCount = songCount ;
   const sourceIndexRef = useRef(0);
   const host = 'http://localhost:5140';
 
@@ -57,11 +56,10 @@ const AudioPlayer = () => {
 
   const playStreaming = async () => {
     try {
-      if(sourceIndexRef.current >= sourceListRef.current.length)
-      {
+      if (sourceIndexRef.current >= sourceListRef.current.length) {
         console.log('Index at the end of the array buffer');
         setIsPlaying(false);
-        return; 
+        return;
       }
       const sourceNode = sourceListRef.current[sourceIndexRef.current];
       if (!sourceNode) {
@@ -75,9 +73,9 @@ const AudioPlayer = () => {
       const timeBeforeEnd = audioDuration - 10;
 
       setTimeout(() => {
-          console.log('Changing playing chunk.');
-          sourceIndexRef.current++;
-          playStreaming();
+        console.log('Changing playing chunk.');
+        sourceIndexRef.current++;
+        playStreaming();
       }, timeBeforeEnd);
     } catch (error) {
       console.error('Error en el streaming de audio:', error);
@@ -101,7 +99,7 @@ const AudioPlayer = () => {
         const audioData1 = await fetchAudioSegment();
         const source1 = await buildSourceNodeFromBuffer(audioData1);
         sourceListRef.current.push(source1);
-        
+
         const audioData2 = await fetchAudioSegment();
         const source2 = await buildSourceNodeFromBuffer(audioData2);
         sourceListRef.current.push(source2);
@@ -110,8 +108,8 @@ const AudioPlayer = () => {
       playStreaming();
     } else {
       setIsPlaying(false);
-      if (sourceListRef.current[0]) {
-        sourceListRef.current[0].stop();
+      if (sourceListRef.current[sourceIndexRef.current]) {
+        sourceListRef.current[sourceIndexRef.current].stop();
       }
     }
   };
@@ -119,16 +117,7 @@ const AudioPlayer = () => {
   return (
     <div>
       <h1>Streaming de Audio</h1>
-      <label htmlFor="songId">Song ID:</label>
-      <input
-        type="text"
-        id="songId"
-        placeholder="Introduce el ID de la canción"
-        value={songId}
-        onChange={(e) => setSongId(e.target.value)}
-      />
-      <br />
-      <br />
+      <p>Song ID: {songId}</p>
       <button onClick={handlePlayClick}>
         {isPlaying ? 'Detener Streaming' : 'Iniciar Streaming'}
       </button>
