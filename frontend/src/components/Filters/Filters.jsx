@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { requestToServer } from '../../utils/server';
 import { genres, getGenreNameById } from '../../utils/global';
+import Select from '../Select/Select';
 
 
 const Filters = ({ setSongs, page, reload }) => {
     const [albums, setAlbums] = useState([])
     const [authors, setAuthors] = useState([])
+    const [albumPage, setAlbumPage] = useState(1)
+    const [authorPage, setAuthorPage] = useState(1)
     const [formData, setFormData] = useState({
         Name: '',
         AuthorId: '',
@@ -14,18 +17,37 @@ const Filters = ({ setSongs, page, reload }) => {
         SongFile: null
     });
 
+    const getAlbums = () => {
+        requestToServer("GET", `/Album?limit=${14}&page=${albumPage}`, null, (d) => {
+            setAlbums(prevAlbums => {
+                const newAlbums = d.value.filter(album => !prevAlbums.find(a => a.id === album.id));
+                return [...prevAlbums, ...newAlbums];
+            });
+        }, (e) => {
+    console.error(e);
+        })
+    }
+    const getAuthors = () => {
+        requestToServer("GET", `/Author?limit=${10}&page=${page}`, null, (d) => {
+            setAuthors([...albums, ...d.value])
+        }, (e) => {
+            console.error(e)
+        })
+    }
+
+    const newAlbums = () => {
+        console.log(albumPage)
+        setAlbumPage(p => p + 1)
+    }
+
+    useEffect(() => {
+        getAlbums()
+    }, [albumPage])
+
     useEffect(() => {
       const api = async () => {
-        requestToServer("GET", `/Album?limit=${10000000}`, null, (d) => {
-          setAlbums(d.value)
-        }, (e) => {
-            (d)
-        })
-        requestToServer("GET", `/Author?limit=${10000000}`, null, (d) => {
-            setAuthors(d.value)
-          }, (e) => {
-              (d)
-          })
+        getAlbums()
+        getAuthors()
       }
       api()
     }, [])
@@ -51,24 +73,28 @@ const Filters = ({ setSongs, page, reload }) => {
             url += `&pattern=${data.pattern}`
         }
         requestToServer("GET", url, null, async (d) => {
-            (d)
             let songs = []
             for (let index = 0; index < d.value.length; index++) {
                 const ele = d.value[index];
-                const albumDetails = await requestToServer("GET", `/Album?limit=1&pattern=${ele.albumId}`, null, (d) => {
-                    return d.value;
-                }, (e) => {
-                    console.error(e);
-                    return null;
-                });
-                
-                const authorDetails = await requestToServer("GET", `/Author?limit=1&pattern=${ele.authorId}`, null, (d) => {
-                    return d.value;
-                }, (e) => {
-                    console.error(e);
-                    return null;
-                });
-                (albumDetails, authorDetails, ele)
+                let albumDetails = null
+                let authorDetails = null
+                if (ele.albumId) {
+                    await requestToServer("GET", `/Album?limit=1&id=${ele.albumId}`, null, (d) => {
+                        albumDetails = d.value[0];
+                    }, (e) => {
+                        console.error(e);
+                        return null;
+                    });
+                }
+                if (ele.authorId) {
+                    authorDetails = await requestToServer("GET", `/Author?limit=1&id=${ele.authorId}`, null, (d) => {
+                        authorDetails = d.value[0];
+                    }, (e) => {
+                        console.error(e);
+                        return null;
+                    });   
+                }
+                // console.log(albumDetails, authorDetails, ele)
                 songs.push({
                     ...ele,
                     "author": authorDetails,
@@ -113,17 +139,14 @@ const Filters = ({ setSongs, page, reload }) => {
             
             <div className="col-md-3">
                 <label htmlFor="album" className="form-label">Álbum</label>
-                <select 
-                    name="AlbumId"
-                    id="album"
-                    value={formData.AlbumId}
-                    onChange={handleInputChange}
-                    >
-                    <option value={null}></option>
-                    {albums.map(ele => (
-                        <option key={ele.id} value={ele.id}>{ele.name}</option>
-                    ))}
-                </select>
+                <Select
+  name="AlbumId"
+  id="album"
+  value={formData.AlbumId}
+  onChange={handleInputChange}
+  options={albums.map(album => ({ value: album.id, label: album.name }))}
+  page={newAlbums}
+/>
             </div>
             
             <div className="col-md-3">

@@ -16,7 +16,6 @@ const Album = () => {
       "name": albumName
     } 
     requestToServer("POST", `/Album`, data, (d) => {
-      (d)
       setAlbumName("")
       getAlbums()
       setPage(1)
@@ -26,7 +25,7 @@ const Album = () => {
   }
 
   const getAlbums = async () => {
-    requestToServer("GET", `/Album?limit=${10}&page=${page - 1}`, null, (d) => {
+    requestToServer("GET", `/Album?limit=${10}&page=${page}`, null, (d) => {
       setAlbums(d.value) 
     }, (e) => {
         console.log(e)
@@ -60,7 +59,7 @@ const Album = () => {
     if (albums.length > 0) {
       // setPage(1)
     }
-    if (albums.length == 0 && page > 0) {
+    if (albums.length == 0 && page > 1) {
       setPage(page - 1)
     }
   }, [albums])
@@ -71,7 +70,7 @@ const Album = () => {
       <div className="container my-5">
         <h2 className="text-center">Agregar Album</h2>
         <div className="d-flex justify-content-center gap-3 mt-4">
-          <button className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarAlbum">Agregar Álbum</button>
+          <button className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarAlbum">Álbum</button>
         </div>
       </div>
 
@@ -79,13 +78,13 @@ const Album = () => {
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="modalAgregarAlbumLabel">Agregar Álbum</h5>
+              <h5 className="modal-title" id="modalAgregarAlbumLabel">Agregar Autor</h5>
               <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div className="modal-body">
               <form id="album" onSubmit={addAlbum}>
                 <div className="mb-3">
-                  <label htmlFor="nombreAlbum" className="form-label">Nombre del Álbum</label>
+                  <label htmlFor="nombreAlbum" className="form-label">Nombre del Autor</label>
                   <input 
                     type="text" 
                     className="form-control" 
@@ -120,13 +119,12 @@ const Album = () => {
             ))}
           </tbody>
         </table>
-        {page != 0 ? 
+        {albums.length != 0 ? 
         <div className='container d-flex justify-content-center'>
           {page > 1 ? 
             <button className='btn btn-primary me-3' onClick={() => handleChangePage('prev')}>Atras</button> : <></>}
           <p className='h3 me-3'>{page}</p>
-          {page > 0 ? 
-            <button className='btn btn-primary me-3' onClick={() => handleChangePage('next')}>Siguiente</button> : <></>}
+            <button className='btn btn-primary me-3' onClick={() => handleChangePage('next')}>Siguiente</button>
         </div> : <></> }
       </div>
     </div>
