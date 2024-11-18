@@ -33,6 +33,7 @@ export async function requestToServer(method, url, data, onSuccess, onError) {
     onSuccess(result);
   } catch (error) {
     // Llamar a la función de error pasando el mensaje de error
+    console.log(1)
     handleErrorWithSweetAlert(error.message)
     onError(error.message);
   }

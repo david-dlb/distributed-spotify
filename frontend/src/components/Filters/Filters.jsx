@@ -51,24 +51,28 @@ const Filters = ({ setSongs, page, reload }) => {
             url += `&pattern=${data.pattern}`
         }
         requestToServer("GET", url, null, async (d) => {
-            (d)
             let songs = []
             for (let index = 0; index < d.value.length; index++) {
                 const ele = d.value[index];
-                const albumDetails = await requestToServer("GET", `/Album?limit=1&pattern=${ele.albumId}`, null, (d) => {
-                    return d.value;
-                }, (e) => {
-                    console.error(e);
-                    return null;
-                });
-                
-                const authorDetails = await requestToServer("GET", `/Author?limit=1&pattern=${ele.authorId}`, null, (d) => {
-                    return d.value;
-                }, (e) => {
-                    console.error(e);
-                    return null;
-                });
-                (albumDetails, authorDetails, ele)
+                let albumDetails = ele.albumId
+                let authorDetails = ele.authorId
+                if (ele.AlbumId) {
+                    albumDetails = await requestToServer("GET", `/Album?limit=1&id=${ele.albumId}`, null, (d) => {
+                        return d.value;
+                    }, (e) => {
+                        console.error(e);
+                        return null;
+                    });
+                }
+                if (ele.authorId) {
+                    authorDetails = await requestToServer("GET", `/Author?limit=1&id=${ele.authorId}`, null, (d) => {
+                        return d.value;
+                    }, (e) => {
+                        console.error(e);
+                        return null;
+                    });   
+                }
+                console.log(albumDetails, authorDetails, ele)
                 songs.push({
                     ...ele,
                     "author": authorDetails,
@@ -76,7 +80,7 @@ const Filters = ({ setSongs, page, reload }) => {
                     "genre": getGenreNameById(ele.genre)
                 })
             }
-            setSongs(songs)
+            setSongs(d.value)
           }, (e) => {
             (e)
           })

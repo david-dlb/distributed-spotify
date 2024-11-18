@@ -75,8 +75,8 @@ const Song = () => {
                 <tr key={index}>
                   <td onClick={() => startSong(ele.id)}>Reproducir</td>
                   <td>{ele.name}</td>
-                  <td>{ele.author}</td>
-                  <td>{ele.genre}</td>
+                  <td>{ele.author ? ele.author.name : <></>}</td>
+                  <td>{ele.genre ? ele.genre.name : <></>}</td>
                   <td>{ele.album}</td>
                   <td className='cursor' data-bs-toggle="modal" data-bs-target="#modalEditarCancion" onClick={() => setId(ele.id)}>editar</td>
                   <td className='cursor' onClick={() => deleted(ele.id)}>borrar</td>
