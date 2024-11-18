@@ -18,10 +18,13 @@ const Filters = ({ setSongs, page, reload }) => {
     });
 
     const getAlbums = () => {
-        requestToServer("GET", `/Album?limit=${14}&page=${page}`, null, (d) => {
-            setAlbums([...albums, ...d.value]);
+        requestToServer("GET", `/Album?limit=${14}&page=${albumPage}`, null, (d) => {
+            setAlbums(prevAlbums => {
+                const newAlbums = d.value.filter(album => !prevAlbums.find(a => a.id === album.id));
+                return [...prevAlbums, ...newAlbums];
+            });
         }, (e) => {
-            console.error(e)
+    console.error(e);
         })
     }
     const getAuthors = () => {
@@ -31,9 +34,15 @@ const Filters = ({ setSongs, page, reload }) => {
             console.error(e)
         })
     }
-    const newAlbums = () => {
 
+    const newAlbums = () => {
+        console.log(albumPage)
+        setAlbumPage(p => p + 1)
     }
+
+    useEffect(() => {
+        getAlbums()
+    }, [albumPage])
 
     useEffect(() => {
       const api = async () => {

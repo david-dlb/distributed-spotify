@@ -19,10 +19,10 @@ function Select({ name, id, value, onChange, options = [], page }) {
     setIsOpen(!isOpen);
   };
 
-  const handleOptionClick = (optionValue) => {
-    setSelectedOption(optionValue);
+  const handleOptionClick = (option) => {
+    setSelectedOption(option);
     setIsOpen(false);
-    onChange({ target: { name, value: optionValue } });
+    onChange({ target: { name, value: option.value } });
   };
 
   const handleScroll = () => {
@@ -42,12 +42,12 @@ function Select({ name, id, value, onChange, options = [], page }) {
   return (
     <div className="custom-select">
       <button onClick={toggleOpen} className={`select-button ${isOpen ? 'open' : ''}`}>
-        {selectedOption || 'Seleccione una opción'}
+        {selectedOption ? selectedOption.label : 'Seleccione una opción'}
       </button>
       {isOpen && (
         <ul ref={listRef} onScroll={handleScroll} style={{ maxHeight: '300px', overflowY: 'auto' }}>
           {options.map((option) => (
-            <li key={option.value} onClick={() => handleOptionClick(option.value)}>
+            <li key={option.value} onClick={() => handleOptionClick(option)}>
               {option.label}
             </li>
           ))}
