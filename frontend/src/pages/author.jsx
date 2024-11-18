@@ -25,7 +25,8 @@ const Author = () => {
   }
 
   const getAuthors = async () => {
-    requestToServer("GET", `/Author?limit=${10}&page=${page - 1}`, null, (d) => {
+    console.log(page)
+    requestToServer("GET", `/Author?limit=${10}&page=${page}`, null, (d) => {
       setAuthors(d.value) 
     }, (e) => {
         console.log(e)
@@ -59,7 +60,7 @@ const Author = () => {
     if (authors.length > 0) {
       // setPage(1)
     }
-    if (authors.length == 0 && page > 0) {
+    if (authors.length == 0 && page > 1) {
       setPage(page - 1)
     }
   }, [authors])
@@ -68,9 +69,9 @@ const Author = () => {
     <div className="">
       <Navbar/>
       <div className="container my-5">
-        <h2 className="text-center">Agregar Autor</h2>
+        <h2 className="text-center">Autor</h2>
         <div className="d-flex justify-content-center gap-3 mt-4">
-          <button className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarauthor">Agregar Álbum</button>
+          <button className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarauthor">Agregar Autor</button>
         </div>
       </div>
 
@@ -78,13 +79,13 @@ const Author = () => {
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="modalAgregarauthorLabel">Agregar Álbum</h5>
+              <h5 className="modal-title" id="modalAgregarauthorLabel">Agregar Autor</h5>
               <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div className="modal-body">
               <form id="author" onSubmit={addAuthor}>
                 <div className="mb-3">
-                  <label htmlFor="nombreauthor" className="form-label">Nombre del Álbum</label>
+                  <label htmlFor="nombreauthor" className="form-label">Nombre del Autor</label>
                   <input 
                     type="text" 
                     className="form-control" 
@@ -92,7 +93,7 @@ const Author = () => {
                     id="nombreauthor" 
                     value={authorName} 
                     onChange={(e) => setAuthorName(e.target.value)}
-                    placeholder="Introduce el nombre del álbum"
+                    placeholder="Introduce el nombre del autor"
                   />
                 </div>
                 <button type="submit" className="btn btn-primary">Guardar</button>
@@ -119,13 +120,12 @@ const Author = () => {
             ))}
           </tbody>
         </table>
-        {page != 0 ? 
+        {authors.length != 0 ? 
         <div className='container d-flex justify-content-center'>
           {page > 1 ? 
             <button className='btn btn-primary me-3' onClick={() => handleChangePage('prev')}>Atras</button> : <></>}
-          <p className='h3 me-3'>{page}</p>
-          {page > 0 ? 
-            <button className='btn btn-primary me-3' onClick={() => handleChangePage('next')}>Siguiente</button> : <></>}
+            <p className='h3 me-3'>{page}</p>
+            <button className='btn btn-primary me-3' onClick={() => handleChangePage('next')}>Siguiente</button>
         </div> : <></> }
       </div>
     </div>
