@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { requestToServer } from '../../utils/server';
 import { genres, getGenreNameById } from '../../utils/global';
+import Select from '../Select/Select';
 
 
 const Filters = ({ setSongs, page, reload }) => {
     const [albums, setAlbums] = useState([])
     const [authors, setAuthors] = useState([])
+    const [albumPage, setAlbumPage] = useState(1)
+    const [authorPage, setAuthorPage] = useState(1)
     const [formData, setFormData] = useState({
         Name: '',
         AuthorId: '',
@@ -14,18 +17,28 @@ const Filters = ({ setSongs, page, reload }) => {
         SongFile: null
     });
 
+    const getAlbums = () => {
+        requestToServer("GET", `/Album?limit=${14}&page=${page}`, null, (d) => {
+            setAlbums([...albums, ...d.value]);
+        }, (e) => {
+            console.error(e)
+        })
+    }
+    const getAuthors = () => {
+        requestToServer("GET", `/Author?limit=${10}&page=${page}`, null, (d) => {
+            setAuthors([...albums, ...d.value])
+        }, (e) => {
+            console.error(e)
+        })
+    }
+    const newAlbums = () => {
+
+    }
+
     useEffect(() => {
       const api = async () => {
-        requestToServer("GET", `/Album?limit=${10000000}`, null, (d) => {
-          setAlbums(d.value)
-        }, (e) => {
-            (d)
-        })
-        requestToServer("GET", `/Author?limit=${10000000}`, null, (d) => {
-            setAuthors(d.value)
-          }, (e) => {
-              (d)
-          })
+        getAlbums()
+        getAuthors()
       }
       api()
     }, [])
@@ -80,7 +93,6 @@ const Filters = ({ setSongs, page, reload }) => {
                     "genre": getGenreNameById(ele.genre)
                 })
             }
-            console.log(songs)
             setSongs(songs)
           }, (e) => {
             (e)
@@ -118,17 +130,14 @@ const Filters = ({ setSongs, page, reload }) => {
             
             <div className="col-md-3">
                 <label htmlFor="album" className="form-label">Álbum</label>
-                <select 
-                    name="AlbumId"
-                    id="album"
-                    value={formData.AlbumId}
-                    onChange={handleInputChange}
-                    >
-                    <option value={null}></option>
-                    {albums.map(ele => (
-                        <option key={ele.id} value={ele.id}>{ele.name}</option>
-                    ))}
-                </select>
+                <Select
+  name="AlbumId"
+  id="album"
+  value={formData.AlbumId}
+  onChange={handleInputChange}
+  options={albums.map(album => ({ value: album.id, label: album.name }))}
+  page={newAlbums}
+/>
             </div>
             
             <div className="col-md-3">
