@@ -4,9 +4,10 @@ const AudioPlayer = ({ songId, songCount }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioContextRef = useRef(new (window.AudioContext || window.webkitAudioContext)());
   const sourceListRef = useRef([]);
+  const timerRef = useRef(null);
   const sourceDurationRef = useRef([]);
   const chunkIndexRef = useRef(0);
-  const chunkCount = songCount ;
+  const chunkCount = songCount;
   const sourceIndexRef = useRef(0);
   const host = 'http://localhost:5140';
 
@@ -72,7 +73,7 @@ const AudioPlayer = ({ songId, songCount }) => {
       const audioDuration = sourceDurationRef.current[sourceIndexRef.current] * 1000;
       const timeBeforeEnd = audioDuration - 10;
 
-      setTimeout(() => {
+      timerRef.current = setTimeout(() => {
         console.log('Changing playing chunk.');
         sourceIndexRef.current++;
         playStreaming();
@@ -108,6 +109,7 @@ const AudioPlayer = ({ songId, songCount }) => {
       playStreaming();
     } else {
       setIsPlaying(false);
+      clearTimeout(timerRef.current); 
       if (sourceListRef.current[sourceIndexRef.current]) {
         sourceListRef.current[sourceIndexRef.current].stop();
       }
