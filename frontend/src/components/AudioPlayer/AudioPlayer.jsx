@@ -15,9 +15,7 @@ const AudioPlayer = ({ songId, songCount }) => {
   const host = 'http://localhost:5140';
 
   const getSong = (event = null) => {
-    console.log(songId)
     requestToServer("GET", `/Song?limit=1&id=${songId}`, null, async (d) => {
-      console.log(d)
       const ele = d.value[0]
       let y = [null, null]
       if (ele.albumId) {
@@ -36,16 +34,14 @@ const AudioPlayer = ({ songId, songCount }) => {
               return null;
           });  
       }
-      console.log(ele, y)
-      setSong({
-          ...ele
-      })
+      // console.log(ele, y)
+      setSong(ele);
         setSong(d.value[0])
       }, (e) => {
         console.error(e)
       })
   };
-
+console.log(song)
   const fetchAudioSegment = async () => {
     const endpoint = `${host}/api/Song/download/indexed?songId=${songId}&index=${chunkIndexRef.current}`;
     chunkIndexRef.current++;
@@ -153,11 +149,10 @@ const AudioPlayer = ({ songId, songCount }) => {
 
   useEffect(() => {
     getSong()
-  }, songId)
-console.log(song)
+  }, [songId])
   return (
     <div className='rep'>
-      <div onClick={handlePlayClick}>
+      <div onClick={handlePlayClick} className='d-flex'>
         <div className='cursor'>
           {isPlaying ? 
           <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" className="bi bi-pause" viewBox="0 0 16 16">
@@ -169,7 +164,7 @@ console.log(song)
         </div>
         
 
-          <p className='h3'>{song ? song.name : <></>}</p>
+          <p className='h3'>id: {song ? song.id : <></>}</p>
           <p className='h3'>{song ? song.author : <></>}</p>
           <p className='h3'>{song ? song.album : <></>}</p>
       </div>
