@@ -21,7 +21,7 @@ const Song = () => {
       setPage((prevPage) => prevPage - 1);
     }
   };
-
+name
   const deleted = (id) => {
     requestToServer(
       'DELETE',
@@ -36,7 +36,7 @@ const Song = () => {
     );
   };
 
-  const edit = () => {
+  const start = () => {
     // Código de edición
   };
 
@@ -49,19 +49,19 @@ const Song = () => {
   return (
     <div className="">
       <Navbar />
-
+{currentSongId && (
+          <div className="mt-4">
+            {/* <h4>Reproduciendo canción ID: {currentSongId}</h4> */}
+            <AudioPlayer songId={currentSongId}  songCount={currentChunkCount}/>
+          </div>
+        )}
       <div className="container my-5">
         <h2 className="text-center mb-4">Buscar Canciones</h2>
         <Add reload={() => setReload(!reload)} />
 
         <Filters setSongs={setSongs} page={page} reload={reload} />
        
-        {currentSongId && (
-          <div className="mt-4">
-            <h4>Reproduciendo canción ID: {currentSongId}</h4>
-            <AudioPlayer songId={currentSongId}  songCount={currentChunkCount}/>
-          </div>
-        )}
+        
 
         <div className="mt-5">
           <h3 className="text-center mb-4">Resultados de Búsqueda</h3>
@@ -87,7 +87,9 @@ const Song = () => {
                       setCurrentChunkCount(ele.chunksCount)
                     }} 
                   >
-                    Reproducir
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" className="bi bi-play" viewBox="0 0 16 16">
+                      <path d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696z"/>
+                    </svg>
                   </td>
                   <td>{ele.name}</td>
                   <td>{ele.author ? ele.author.name : <></>}</td>

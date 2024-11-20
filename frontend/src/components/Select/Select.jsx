@@ -34,26 +34,25 @@ function Select({ name, id, value, onChange, options = [], page }) {
       if (isBottom && !isAtBottom) {
         console.log('Has llegado al final de las opciones');
         page()
-        // Aquí puedes agregar tu lógica para cargar más opciones
       }
     }
   };
 
   return (
     <div className="custom-select">
-      <button onClick={toggleOpen} className={`select-button ${isOpen ? 'open' : ''}`}>
+      <button onClick={toggleOpen} className={`select-button ${isOpen ? 'open' : ''} btn btn-primary`}>
         {selectedOption ? selectedOption.label : 'Seleccione una opción'}
       </button>
       {isOpen && (
-        <ul ref={listRef} onScroll={handleScroll} style={{ maxHeight: '300px', overflowY: 'auto' }}>
+        <ul ref={listRef} onScroll={handleScroll} className='list-unstyled position-fixed bg-secondary text-light' style={{width: "150px", maxHeight: '300px', overflowY: 'auto' }}>
+          <li onClick={() => handleOptionClick({value: null,label: "ninguno", name: "Ninguno"})}>
+              Ninguno
+            </li>
           {options.map((option) => (
             <li key={option.value} onClick={() => handleOptionClick(option)}>
               {option.label}
             </li>
           ))}
-          {isAtBottom && (
-            <li>Loading more options...</li>
-          )}
         </ul>
       )}
     </div>

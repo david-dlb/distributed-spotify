@@ -26,7 +26,7 @@ const Navbar = () => {
     
             <form className="d-flex me-3" onSubmit={handleSubmit}>
                 <input 
-                    className="form-control me-2" 
+                    className="form-control me-2 d-none" 
                     type="search" 
                     placeholder="Buscar canciones..." 
                     aria-label="Buscar"

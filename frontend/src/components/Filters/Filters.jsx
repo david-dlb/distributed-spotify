@@ -28,16 +28,19 @@ const Filters = ({ setSongs, page, reload }) => {
         })
     }
     const getAuthors = () => {
-        requestToServer("GET", `/Author?limit=${10}&page=${page}`, null, (d) => {
-            setAuthors([...albums, ...d.value])
+        requestToServer("GET", `/Author?limit=${14}&page=${authorPage}`, null, (d) => {
+            console.log(d)
+            setAuthors([...authors, ...d.value])
         }, (e) => {
             console.error(e)
         })
     }
 
     const newAlbums = () => {
-        console.log(albumPage)
         setAlbumPage(p => p + 1)
+    }
+    const newAuthors = () => {
+        setAuthorPage(p => p + 1)
     }
 
     useEffect(() => {
@@ -78,9 +81,10 @@ const Filters = ({ setSongs, page, reload }) => {
                 const ele = d.value[index];
                 let albumDetails = null
                 let authorDetails = null
+                let y = [null, null]
                 if (ele.albumId) {
                     await requestToServer("GET", `/Album?limit=1&id=${ele.albumId}`, null, (d) => {
-                        albumDetails = d.value[0];
+                        y[0] = d.value[0];
                     }, (e) => {
                         console.error(e);
                         return null;
@@ -88,17 +92,16 @@ const Filters = ({ setSongs, page, reload }) => {
                 }
                 if (ele.authorId) {
                     authorDetails = await requestToServer("GET", `/Author?limit=1&id=${ele.authorId}`, null, (d) => {
-                        authorDetails = d.value[0];
+                        y[1] = d.value[0];
                     }, (e) => {
                         console.error(e);
                         return null;
-                    });   
+                    });  
                 }
-                // console.log(albumDetails, authorDetails, ele)
                 songs.push({
                     ...ele,
-                    "author": authorDetails,
-                    "album": albumDetails,
+                    "author": y[1],
+                    "album": y[0],
                     "genre": getGenreNameById(ele.genre)
                 })
             }
@@ -151,17 +154,14 @@ const Filters = ({ setSongs, page, reload }) => {
             
             <div className="col-md-3">
                 <label htmlFor="autor" className="form-label">Autor</label>
-                <select 
-                    name="AuthorId" 
+                <Select
+                    name="AuthorId"
                     id="autor"
                     value={formData.AuthorId}
                     onChange={handleInputChange}
-                    >
-                    <option value={null}></option>
-                    {authors.map(ele => (
-                        <option key={ele.id} value={ele.id}>{ele.name}</option>
-                    ))}
-                </select>
+                    options={authors.map(author => ({ value: author.id, label: author.name }))}
+                    page={newAuthors}
+                />
             </div>
              
             
