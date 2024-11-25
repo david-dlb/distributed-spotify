@@ -26,7 +26,7 @@ public class SpotifyDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlite(
-            "Data Source=../Spotify.Infrastructure/spotify.db",
+            "Data Source=/app/Spotify.Infrastructure/spotify.db",
             opt => opt.MigrationsAssembly("Spotify.Infrastructure")
          );
         optionsBuilder.ConfigureWarnings(warnings => warnings
