@@ -17,6 +17,14 @@
   cursor: pointer;
 }
 
+.rep {
+  position: fixed;
+  bottom: 0;
+  background: gray;
+  width: 100%;
+  padding: 10px;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;

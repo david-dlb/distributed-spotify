@@ -1,7 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { requestToServer } from '../../utils/server';
+import { getGenreNameById } from '../../utils/global';
 
 const AudioPlayer = ({ songId, songCount }) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [song, setSong] = useState(null);
   const audioContextRef = useRef(new (window.AudioContext || window.webkitAudioContext)());
   const sourceListRef = useRef([]);
   const timerRef = useRef(null);
@@ -11,6 +14,34 @@ const AudioPlayer = ({ songId, songCount }) => {
   const sourceIndexRef = useRef(0);
   const host = 'http://localhost:5140';
 
+  const getSong = (event = null) => {
+    requestToServer("GET", `/Song?limit=1&id=${songId}`, null, async (d) => {
+      const ele = d.value[0]
+      let y = [null, null]
+      if (ele.albumId) {
+        await requestToServer("GET", `/Album?limit=1&id=${ele.albumId}`, null, (d) => {
+            y[0] = d.value[0];
+        }, (e) => {
+            console.error(e);
+            return null;
+        });
+      }
+      if (ele.authorId) {
+          await requestToServer("GET", `/Author?limit=1&id=${ele.authorId}`, null, (d) => {
+              y[1] = d.value[0];
+          }, (e) => {
+              console.error(e);
+              return null;
+          });  
+      }
+      // console.log(ele, y)
+      setSong(ele);
+        setSong(d.value[0])
+      }, (e) => {
+        console.error(e)
+      })
+  };
+console.log(song)
   const fetchAudioSegment = async () => {
     const endpoint = `${host}/api/Song/download/indexed?songId=${songId}&index=${chunkIndexRef.current}`;
     chunkIndexRef.current++;
@@ -116,13 +147,27 @@ const AudioPlayer = ({ songId, songCount }) => {
     }
   };
 
+  useEffect(() => {
+    getSong()
+  }, [songId])
   return (
-    <div>
-      <h1>Streaming de Audio</h1>
-      <p>Song ID: {songId}</p>
-      <button onClick={handlePlayClick}>
-        {isPlaying ? 'Detener Streaming' : 'Iniciar Streaming'}
-      </button>
+    <div className='rep'>
+      <div onClick={handlePlayClick} className='d-flex'>
+        <div className='cursor'>
+          {isPlaying ? 
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" className="bi bi-pause" viewBox="0 0 16 16">
+            <path d="M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5m4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5"/>
+          </svg> : 
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" className="bi bi-play" viewBox="0 0 16 16">
+            <path d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696z"/>
+          </svg>}
+        </div>
+        
+
+          <p className='h3'>id: {song ? song.id : <></>}</p>
+          <p className='h3'>{song ? song.author : <></>}</p>
+          <p className='h3'>{song ? song.album : <></>}</p>
+      </div>
     </div>
   );
 };
