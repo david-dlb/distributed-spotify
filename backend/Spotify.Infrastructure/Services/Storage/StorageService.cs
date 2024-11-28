@@ -6,9 +6,11 @@ namespace Spotify.Infrastructure.Services.Storage
 {
     public class StorageService : IStorageService
     {
+        static public string basePath  = "Spotify.Infrastructure/Persistence/Uploads"; 
+        
         public ErrorOr<Success> DeleteFile(string id)
         {
-            var filePath = Path.Combine("../Spotify.Infrastructure/Persistence/Uploads", id);
+            var filePath = Path.Combine(basePath, id);
 
             if (!File.Exists(filePath))
             {
@@ -20,7 +22,7 @@ namespace Spotify.Infrastructure.Services.Storage
 
         public async Task<ErrorOr<byte[]>> ReadFileAsync(string id, ChunkRange range, CancellationToken ct)
         {
-            var filePath = Path.Combine("../Spotify.Infrastructure/Persistence/Uploads", id);
+            var filePath = Path.Combine(basePath, id);
 
             if (!File.Exists(filePath))
             {
@@ -48,7 +50,7 @@ namespace Spotify.Infrastructure.Services.Storage
                 memoryStream.Position = 0;
                 metadata = AnalyzeMp3Frames(memoryStream);
 
-                var filePath = Path.Combine("../Spotify.Infrastructure/Persistence/Uploads", id);
+                var filePath = Path.Combine(basePath, id);
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     memoryStream.Position = 0;
