@@ -749,5 +749,5 @@ appsettings.Development.json
 
 tye.yaml
 
-pgsqldata/
-/MultiCuba.IdentityServer/netcorekeys/
+*.db
+spotify.db

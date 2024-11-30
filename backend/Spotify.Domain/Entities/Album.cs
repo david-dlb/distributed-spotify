@@ -14,5 +14,7 @@ namespace Spotify.Domain.Entities
         {
             return new Album(name);
         }
+        // Needed for EF
+        public Album() {}
     }
 }

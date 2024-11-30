@@ -1,0 +1,58 @@
+services:
+  spotify_router:
+    build:
+      context: .
+      dockerfile: router/Dockerfile
+    container_name: router    
+    cap_add:
+      - NET_ADMIN  
+    networks:
+      servers:
+        ipv4_address: 10.0.11.254  
+      clients:
+        ipv4_address: 10.0.10.254
+    command: ["sleep", "infinity"]
+    
+  spotify_frontend:
+    depends_on:
+      - spotify_router
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: frontend
+    image: spotify_frontend
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 3000:3000
+    networks:
+      - clients 
+  
+  spotify_server:
+    depends_on:
+    - spotify_router
+    build:
+      context: .
+      dockerfile: backend/Dockerfile  
+    container_name: server
+    image: spotify_server
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 5000:6000
+    expose: 
+      - 6000
+    networks:
+      - servers 
+
+networks:
+  servers:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.11.0/24  
+  clients:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.10.0/24

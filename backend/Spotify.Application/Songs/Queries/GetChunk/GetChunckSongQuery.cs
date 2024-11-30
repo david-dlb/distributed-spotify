@@ -4,6 +4,7 @@ using Serilog;
 using Spotify.Application.Common.Interfaces;
 using Spotify.Application.Common.Interfaces.Services;
 using Spotify.Application.Common.Models;
+using Spotify.Domain.ValueObjects;
 
 namespace Spotify.Application.Songs.Queries.GetChunk
 {

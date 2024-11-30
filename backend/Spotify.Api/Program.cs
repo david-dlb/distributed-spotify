@@ -5,6 +5,10 @@ using Serilog.Sinks.SystemConsole.Themes;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders(); 
+builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Warning);
+
 Log.Logger = new LoggerConfiguration()
     .WriteTo
     .Console(
@@ -44,12 +48,10 @@ if (app.Environment.IsDevelopment())
     }); 
 }
 
-app.UseHttpsRedirection();
-
 app.MapControllers();
 
 try {
-    var url = builder.Configuration["ASPNETCORE_URLS"];
+    var url = app.Configuration["ASPNETCORE_URLS"];
     Log.Information($"The application is running at: {url}");
     app.Run();
 }catch(Exception e){

@@ -5,6 +5,7 @@ using Spotify.Infrastructure.Repositories;
 using Spotify.Application.Common.Interfaces.Services;
 using Spotify.Infrastructure.Services.Storage;
 using Spotify.Application.Common.Interfaces.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Spotify.Infrastructure
 {
@@ -12,10 +13,19 @@ namespace Spotify.Infrastructure
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Repositories
-            services.AddScoped<ISongRepository,InMemorySongRepository>(); 
-            services.AddScoped<IAlbumRepository,InMemoryAlbumRepository>(); 
-            services.AddScoped<IAuthorRepository,InMemoryAuthorRepository>(); 
+            services.AddDbContext<SpotifyDbContext>(options =>
+                options.UseSqlite(options => options.MigrationsAssembly("Spotify.Api")));
+
+            // Repositories In Memory
+            // services.AddScoped<ISongRepository,InMemorySongRepository>(); 
+            // services.AddScoped<IAlbumRepository,InMemoryAlbumRepository>(); 
+            // services.AddScoped<IAuthorRepository,InMemoryAuthorRepository>(); 
+            
+            // Persisted 
+            services.AddScoped<ISongRepository,SongRepository>(); 
+            services.AddScoped<IAlbumRepository,AlbumRepository>(); 
+            services.AddScoped<IAuthorRepository,AuthorRepository>(); 
+
 
             // External Services
             services.AddScoped<IStorageService,StorageService>(); 

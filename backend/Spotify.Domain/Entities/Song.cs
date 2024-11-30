@@ -14,17 +14,18 @@ namespace Spotify.Domain.Entities
         public MusicGenre Genre { get; private set; }
         public SongMetadata? Metadata { get; private set; }
         
-        private Song(string name,Guid? album, Guid? author,MusicGenre genre, SongMetadata? metadata)
+        // Needed for EF
+        public Song() { }
+        private Song(string name,Guid? album, Guid? author,MusicGenre genre)
         {
             Name = name;
             AlbumId = album;
             AuthorId = author;
             Genre = genre;
             Id = Guid.NewGuid();     
-            Metadata = metadata;
         }
-        public static Song Create(string name, Guid? albumId, Guid? authorId, MusicGenre? genre, SongMetadata metadata){
-            return new Song(name, albumId, authorId, genre ?? MusicGenre.Unknown, metadata);
+        public static Song Create(string name, Guid? albumId, Guid? authorId, MusicGenre? genre){
+            return new Song(name, albumId, authorId, genre ?? MusicGenre.Unknown);
         }
 
         public void Update(string? name, Guid? albumId, Guid? authorId, MusicGenre? genre)
@@ -33,6 +34,11 @@ namespace Spotify.Domain.Entities
             AlbumId = albumId ?? AlbumId;
             AuthorId = authorId ?? AuthorId; 
             Genre = genre ?? Genre; 
+        }
+
+        public void SetMetadata(SongMetadata metadata)
+        {
+            Metadata = metadata; 
         }
     }
 }
