@@ -1,16 +1,17 @@
-FROM my_dotnet_sdk:latest AS build-and-run
+FROM mcr.microsoft.com/dotnet/sdk:8.0.100-1 AS build-and-run
 
 WORKDIR /app
 
-
 COPY . .
 
-ENV ASPNETCORE_ENVIRONMENT=Development
+RUN apt-get update && apt-get install -y iproute2
 
+ENV ASPNETCORE_ENVIRONMENT=Development
 ENV ASPNETCORE_URLS=http://*:6000
 
-EXPOSE 6002
-EXPOSE 6000
 
+COPY startup.sh /usr/local/bin/startup.sh
 
-ENTRYPOINT ["dotnet", "./Spotify.Api/bin/Debug/net8.0/Spotify.Api.dll"]
+RUN chmod +x /usr/local/bin/startup.sh
+
+ENTRYPOINT ["/usr/local/bin/startup.sh"]

@@ -1,12 +1,18 @@
 // @ts-check
-import reactPlugin from 'vite-plugin-react'
+import reactPlugin from 'vite-plugin-react';
 
 /**
- * @type { import('vite').UserConfig }
  */
 const config = {
+  plugins: [reactPlugin],
+  server: {
+    hmr: false,
+    liveReload: false,
+    watch: {
+      usePolling: false,
+    },
+  },
   jsx: 'react',
-  plugins: [reactPlugin]
-}
+};
 
-export default config
+export default config;

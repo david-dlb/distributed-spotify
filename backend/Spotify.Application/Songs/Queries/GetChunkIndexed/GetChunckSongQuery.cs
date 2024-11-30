@@ -26,6 +26,10 @@ namespace Spotify.Application.Songs.Queries.GetChunkIndexed
                 Log.Error($"Error retrieving song with id {request.SongId}.");
                 // TODO: handle 
             }
+            if(songResult.Value.Metadata!.Chunks.Count <= request.Index)
+            {
+                return Error.Conflict(description: "Index out of range.");
+            }
             var range = songResult.Value.Metadata!.Chunks[request.Index]; 
 
             var data = await _storageService.ReadFileAsync(request.SongId.ToString(),range,cancellationToken);

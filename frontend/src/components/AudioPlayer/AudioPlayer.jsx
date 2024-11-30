@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { requestToServer } from '../../utils/server';
+import { apiHost, requestToServer } from '../../utils/server';
 import { getGenreNameById } from '../../utils/global';
 
 const AudioPlayer = ({ songId, songCount }) => {
@@ -12,7 +12,7 @@ const AudioPlayer = ({ songId, songCount }) => {
   const chunkIndexRef = useRef(0);
   const chunkCount = songCount;
   const sourceIndexRef = useRef(0);
-  const host = 'http://localhost:5140';
+  const host = apiHost;
 
   const getSong = (event = null) => {
     requestToServer("GET", `/Song?limit=1&id=${songId}`, null, async (d) => {

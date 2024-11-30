@@ -1,9 +1,9 @@
 import { handleErrorWithSweetAlert } from "./alert";
 
-export const baseUrl = "http://localhost:5140/api"
+export const apiHost = "http://localhost:5000"
+export const baseUrl = apiHost+ "/api"
 export async function requestToServer(method, url, data, onSuccess, onError) {
   try {
-    // Opciones de la solicitud
     const options = {
       method: method,
       headers: {
