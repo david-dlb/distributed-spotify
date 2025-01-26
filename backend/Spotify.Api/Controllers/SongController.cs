@@ -61,6 +61,7 @@ namespace Spotify.Api.Controllers
                 return Fail<SongDto>("There is not any file.");
 
             var songsResult = await _mediator.Send(new CreateSongCommand(){
+                Id = input.Id,
                 AlbumId = input.AlbumId,
                 AuthorId = input.AuthorId,
                 Genre = input.Genre,

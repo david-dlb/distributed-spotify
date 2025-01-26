@@ -4,6 +4,7 @@ namespace Spotify.Application.Common.Models
 {
     public class CreateSongModel
     {
+        public Guid? Id { get; init; }
         public Guid? AlbumId { get; init; }
         public Guid? AuthorId { get; init; }
         public MusicGenre? Genre { get; init; }

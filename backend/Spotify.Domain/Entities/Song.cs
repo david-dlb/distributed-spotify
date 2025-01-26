@@ -16,16 +16,16 @@ namespace Spotify.Domain.Entities
         
         // Needed for EF
         public Song() { }
-        private Song(string name,Guid? album, Guid? author,MusicGenre genre)
+        private Song(string name,Guid? album, Guid? author,MusicGenre genre, Guid? id = null)
         {
             Name = name;
             AlbumId = album;
             AuthorId = author;
             Genre = genre;
-            Id = Guid.NewGuid();     
+            Id = id ?? Guid.NewGuid();     
         }
-        public static Song Create(string name, Guid? albumId, Guid? authorId, MusicGenre? genre){
-            return new Song(name, albumId, authorId, genre ?? MusicGenre.Unknown);
+        public static Song Create(string name, Guid? albumId, Guid? authorId, MusicGenre? genre, Guid? id = null){
+            return new Song(name, albumId, authorId, genre ?? MusicGenre.Unknown, id);
         }
 
         public void Update(string? name, Guid? albumId, Guid? authorId, MusicGenre? genre)

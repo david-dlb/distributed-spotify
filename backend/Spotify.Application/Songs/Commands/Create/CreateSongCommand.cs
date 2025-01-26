@@ -11,6 +11,7 @@ namespace Spotify.Application.Songs.Commands.Create
 {
     public class CreateSongCommand() : IRequest<ErrorOr<Song>>
     {
+        public Guid? Id { get; set; }
         public Guid? AlbumId { get; init; }
         public Guid? AuthorId { get; init; }
         public MusicGenre? Genre { get; init; }
@@ -26,7 +27,7 @@ namespace Spotify.Application.Songs.Commands.Create
         public async Task<ErrorOr<Song>> Handle(CreateSongCommand request, CancellationToken cancellationToken)
         {
             Log.Information($"Adding song with name {request.Name}"); 
-            var song = Song.Create(request.Name ,request.AlbumId,request.AuthorId,request.Genre);            
+            var song = Song.Create(request.Name ,request.AlbumId,request.AuthorId,request.Genre, request.Id);            
 
             var fileSaveResult = await _storageService.SaveFileAsync(song.Id.ToString(),request.Stream, cancellationToken); 
             if (fileSaveResult.IsError)
