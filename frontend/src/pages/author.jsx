@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { requestToServer, requestToServerForm } from '../utils/server';
 import { genres } from '../utils/global';
 import Navbar from '../components/Navbar/Navbar';
+import { BackendService } from '../utils/backend';
 
 
 const Author = () => {
   const [authorName, setAuthorName] = useState('');
   const [authors, setAuthors] = useState([])  
   const [page, setPage] = useState(1)
+  const backendService = new BackendService()
   
 
   const addAuthor = (e) => {
@@ -15,7 +17,7 @@ const Author = () => {
     const data = {
       "name": authorName
     } 
-    requestToServer("POST", `/Author`, data, (d) => {
+    backendService.setAuthor( data, (d) => {
       setAuthorName("")
       getAuthors()
       setPage(1)
@@ -26,7 +28,7 @@ const Author = () => {
 
   const getAuthors = async () => {
     console.log(page)
-    requestToServer("GET", `/Author?limit=${10}&page=${page}`, null, (d) => {
+    backendService.getAuthors(`?limit=${10}&page=${page}`, (d) => {
       setAuthors(d.value) 
     }, (e) => {
         console.log(e)

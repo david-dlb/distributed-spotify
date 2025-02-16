@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { requestToServer } from '../../utils/server';
 import { genres, getGenreNameById } from '../../utils/global';
 import Select from '../Select/Select';
+import { BackendService } from '../../utils/backend';
 
 
 const Filters = ({ setSongs, page, reload }) => {
@@ -17,8 +18,10 @@ const Filters = ({ setSongs, page, reload }) => {
         SongFile: null
     });
 
+    const backendService = new BackendService()
+
     const getAlbums = () => {
-        requestToServer("GET", `/Album?limit=${14}&page=${albumPage}`, null, (d) => {
+        backendService.getAlbums(`?limit=${14}&page=${albumPage}`, (d) => {
             setAlbums(prevAlbums => {
                 const newAlbums = d.value.filter(album => !prevAlbums.find(a => a.id === album.id));
                 return [...prevAlbums, ...newAlbums];
@@ -28,8 +31,7 @@ const Filters = ({ setSongs, page, reload }) => {
         })
     }
     const getAuthors = () => {
-        requestToServer("GET", `/Author?limit=${14}&page=${authorPage}`, null, (d) => {
-            console.log(d)
+        backendService.getAuthors(`?limit=${14}&page=${authorPage}`, (d) => {
             setAuthors([...authors, ...d.value])
         }, (e) => {
             console.error(e)
@@ -65,7 +67,7 @@ const Filters = ({ setSongs, page, reload }) => {
             authorId: formData.AuthorId,
             pattern: formData.Name
         }
-        let url = `/Song?limit=${10}&page=${page}`
+        let url = `?limit=${10}&page=${page}`
         if (data.albumId) {
             url += `&albumId=${data.albumId}`
         }
@@ -75,7 +77,7 @@ const Filters = ({ setSongs, page, reload }) => {
         if (data.pattern) {
             url += `&pattern=${data.pattern}`
         }
-        requestToServer("GET", url, null, async (d) => {
+        backendService.getSongs(url, async (d) => {
             let songs = []
             for (let index = 0; index < d.value.length; index++) {
                 const ele = d.value[index];
@@ -83,7 +85,7 @@ const Filters = ({ setSongs, page, reload }) => {
                 let authorDetails = null
                 let y = [null, null]
                 if (ele.albumId) {
-                    await requestToServer("GET", `/Album?limit=1&id=${ele.albumId}`, null, (d) => {
+                    await backendService.getAlbums(`?limit=1&id=${ele.albumId}`, (d) => {
                         y[0] = d.value[0];
                     }, (e) => {
                         console.error(e);
@@ -91,7 +93,7 @@ const Filters = ({ setSongs, page, reload }) => {
                     });
                 }
                 if (ele.authorId) {
-                    authorDetails = await requestToServer("GET", `/Author?limit=1&id=${ele.authorId}`, null, (d) => {
+                    authorDetails = await backendService.getAuthors(`?limit=1&id=${ele.authorId}`, (d) => {
                         y[1] = d.value[0];
                     }, (e) => {
                         console.error(e);

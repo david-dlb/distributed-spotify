@@ -1,7 +1,5 @@
 import { handleErrorWithSweetAlert } from "./alert";
 
-export const apiHost = "http://localhost:5000"
-export const baseUrl = apiHost+ "/api"
 export async function requestToServer(method, url, data, onSuccess, onError) {
   try {
     const options = {
@@ -15,7 +13,7 @@ export async function requestToServer(method, url, data, onSuccess, onError) {
     if (data && (method !== 'GET' || method != "DELETE")) {
       options.body = JSON.stringify(data);
     }
-    const urlF = baseUrl + url 
+    const urlF = window.env.URL + url 
     // Hacer la solicitud con fetch
     const response = await fetch(urlF, options);
     
@@ -50,7 +48,7 @@ export async function requestToServerForm(method, url, data, onSuccess, onError)
       },
       body: data,
     };
-    const urlF = baseUrl + url 
+    const urlF = window.env.URL + url 
     // Hacer la solicitud con fetch
     const response = await fetch(urlF, options);
     

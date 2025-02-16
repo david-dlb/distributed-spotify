@@ -3,16 +3,19 @@ import Navbar from '../components/Navbar/Navbar';
 import Filters from '../components/Filters/Filters';
 import Add from './add';
 import Edit from './edit';
-import { requestToServer } from '../utils/server';
 import AudioPlayer from '../components/AudioPlayer/AudioPlayer'; // Importa el componente AudioPlayer
+import { BackendService } from '../utils/backend';
 
 const Song = () => {
   const [page, setPage] = useState(1);
   const [songs, setSongs] = useState([]);
+  const [songStore, setSongStore] = useState({});
   const [reload, setReload] = useState(false);
   const [id, setId] = useState(null);
   const [currentSongId, setCurrentSongId] = useState(null);
+  const [songChunks, setSongChunks] = useState({});
   const [currentChunkCount, setCurrentChunkCount] = useState(null); 
+  const backendService = new BackendService()
 
   const handleChangePage = (direction) => {
     if (direction === 'next') {
@@ -23,10 +26,8 @@ const Song = () => {
   };
 name
   const deleted = (id) => {
-    requestToServer(
-      'DELETE',
-      `/Song?SongId=${id}`,
-      null,
+    backendService.deleteSongs(
+      `?SongId=${id}`,
       (d) => {
         setReload(!reload);
       },
@@ -45,14 +46,14 @@ name
       setPage(page - 1);
     }
   }, [songs]);
-
+console.log(songChunks)
   return (
     <div className="">
       <Navbar />
 {currentSongId && (
           <div className="mt-4">
             {/* <h4>Reproduciendo canción ID: {currentSongId}</h4> */}
-            <AudioPlayer songId={currentSongId}  songCount={currentChunkCount}/>
+            <AudioPlayer songId={currentSongId}   songCount={currentChunkCount}/>
           </div>
         )}
       <div className="container my-5">

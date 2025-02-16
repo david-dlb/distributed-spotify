@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { requestToServer, requestToServerForm } from '../utils/server';
 import { genres } from '../utils/global';
 import Navbar from '../components/Navbar/Navbar';
+import { BackendService } from '../utils/backend';
 
 
 const Album = () => {
   const [albumName, setAlbumName] = useState('');
   const [albums, setAlbums] = useState([])  
   const [page, setPage] = useState(1)
+  const backendService = new BackendService()
   
 
   const addAlbum = (e) => {
@@ -15,7 +17,7 @@ const Album = () => {
     const data = {
       "name": albumName
     } 
-    requestToServer("POST", `/Album`, data, (d) => {
+    backendService.setAlbums( data, (d) => {
       setAlbumName("")
       getAlbums()
       setPage(1)
@@ -25,7 +27,7 @@ const Album = () => {
   }
 
   const getAlbums = async () => {
-    requestToServer("GET", `/Album?limit=${10}&page=${page}`, null, (d) => {
+    backendService.getAlbums( `?limit=${10}&page=${page}`, (d) => {
       setAlbums(d.value) 
     }, (e) => {
         console.log(e)
@@ -41,7 +43,7 @@ const Album = () => {
   }
 
   const deleted = (id) => {
-    requestToServer("DELETE", `/Album?AlbumId=${id}`, null, (d) => {
+    backendService.deleteAlbums("DELETE", `/Album?AlbumId=${id}`, null, (d) => {
       getAlbums()
     }, (e) => {
         console.log(e)

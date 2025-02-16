@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { baseUrl, requestToServer, requestToServerForm } from '../utils/server';
+import { requestToServer, requestToServerForm } from '../utils/server';
 import { genres } from '../utils/global';
 import Navbar from '../components/Navbar/Navbar';
 import { handleErrorWithSweetAlert } from '../utils/alert';
+import { BackendService } from '../utils/backend';
 
 
 const Add = ({ setSongs, reload }) => {
@@ -17,6 +18,7 @@ const Add = ({ setSongs, reload }) => {
   const [authorName, setAuthorName] = useState('');
   const [albums, setAlbums] = useState([])
   const [authors, setAuthors] = useState([])
+  const backendService = new BackendService()
   
   
 
@@ -31,7 +33,7 @@ const Add = ({ setSongs, reload }) => {
     data.append('Genre', formData.Genre);
     data.append('Name', formData.Name);
 
-    requestToServerForm("POST", "/Song", data, (d) => {
+    backendService.setSong("POST", data, (d) => {
       (d)
       setFormData({
         Name: '',
@@ -45,14 +47,14 @@ const Add = ({ setSongs, reload }) => {
   }
 
   const getAlbums = async () => {
-    requestToServer("GET", `/Album?limit=${1000000}`, null, (d) => {
+    backendService.getAlbums( `?limit=${1000000}`, (d) => {
       setAlbums(d.value) 
     }, (e) => {
         (e)
     })
   }
   const getAuthors = async () => {
-    requestToServer("GET", `/Author?limit=${1000000}`, null, (d) => {
+    backendService.getAuthors(`?limit=${1000000}`, (d) => {
       setAuthors(d.value) 
     }, (e) => {
         (e)

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { requestToServer } from '../utils/server';
 import { genres } from '../utils/global';
+import { BackendService } from '../utils/backend';
 
 
 const Edit = ({ id, setSongs, reload }) => {
@@ -13,6 +14,7 @@ const Edit = ({ id, setSongs, reload }) => {
   });
   const [albums, setAlbums] = useState([])
   const [authors, setAuthors] = useState([])
+  const backendService = new BackendService()
   
   
 
@@ -27,7 +29,7 @@ const Edit = ({ id, setSongs, reload }) => {
       'id': id
     }
  
-    requestToServer("PUT", "/Song", data, (d) => {
+    backendService.putSong(data, (d) => {
  
       setFormData({
         Name: '',
@@ -40,14 +42,14 @@ const Edit = ({ id, setSongs, reload }) => {
   }
 
   const getAlbums = async () => {
-    requestToServer("GET", `/Album?limit=${1000000}`, null, (d) => {
+    backendService.getAlbums(`?limit=${1000000}`, (d) => {
       setAlbums(d.value) 
     }, (e) => {
         console.log(e)
     })
   }
   const getAuthors = async () => {
-    requestToServer("GET", `/Author?limit=${1000000}`, null, (d) => {
+    backendService.getAuthors(`?limit=${1000000}`, (d) => {
       setAuthors(d.value) 
     }, (e) => {
         console.log(e)
