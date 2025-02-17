@@ -11,7 +11,7 @@ namespace Spotify.Infrastructure.Services.Chord
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        private readonly int _m = 4;
+        private readonly int _m = 16;
         private readonly ChordNode _localNode;
         private readonly ConcurrentDictionary<int, ChordNode> _knownNodes = new();
         private ConcurrentDictionary<int, ChordNode> _fingerTable = new();
@@ -213,7 +213,7 @@ namespace Spotify.Infrastructure.Services.Chord
                     }
                     return; 
                 }
-                Log.Information("Revisando si mi sucessor {Id} esta vivo .", Successor!.Id);
+                Log.Information("Revisando si mi sucessor {Id} esta vivo.", Successor!.Id);
                 var isAlive = await checkIfNodeIsAlive(Successor);
                 if(!isAlive){
                     Log.Information("Succesor {Id} esta muerto. Reincorporando nodo al anillo usando su predecesor.", Successor!.Id);
@@ -256,14 +256,11 @@ namespace Spotify.Infrastructure.Services.Chord
         public async Task FixFingerTableAsync()
         {
             Log.Information("Iniciando actualización de la finger table para nodo {LocalUrl}", _localNode.Url);
-            var random = new Random();
-            var next = random.Next(1, _m);
-            Log.Information("Seleccionado índice {Next} para actualizar finger table.", next);
-            // TODO: explore if this is correct
-            // var fingerId = GenerateSha1Hash(_localNode.Id + next);
-            // Log.Information("ID calculado para finger table: {FingerId}", fingerId);
-            // _fingerTable[next] = await FindSuccessorAsync(fingerId, _localNode);
-            Log.Information("Finger table actualizada en índice {Next} con nodo {FingerUrl}", next, _fingerTable[next].Url);
+            for (var i = 0; i < _m; i++)
+            {
+                var fingerId = _localNode.Id + i;
+                _fingerTable[i] = await FindSuccessorAsync(fingerId, _localNode);
+            }                
         }
 
         public async Task<string> StoreDataAsync(string key, string value)
@@ -271,7 +268,7 @@ namespace Spotify.Infrastructure.Services.Chord
             Log.Information("Almacenando dato. Clave: {Key}, Valor: {Value}", key, value);
             var keyHash = GenerateSha1Hash(key);
             Log.Information("Hash generado para clave {Key}: {KeyHash} % {M} = {Nodo}", key, keyHash, _m, keyHash%_m);
-            var responsibleNode = await FindSuccessorAsync(keyHash, _localNode);
+            var responsibleNode = await FindSuccessorAsync(keyHash%_m, _localNode);
             Log.Information("Nodo responsable para la clave {Key} es {ResponsibleUrl}", key, responsibleNode.Url);
             
             if (responsibleNode.Url == _localNode.Url)
@@ -366,6 +363,7 @@ namespace Spotify.Infrastructure.Services.Chord
             {
                 Log.Information("Mi predecesor esta muerto.");
                 Predecessor = null; 
+                return "";
             }
             return Predecessor!.Url; 
         }
@@ -375,7 +373,7 @@ namespace Spotify.Infrastructure.Services.Chord
                 var response = await _httpClient.GetAsync($"{node.Url}/api/chord/alive"); 
                 return response.IsSuccessStatusCode; 
             } catch {
-                Log.Error("Comprobando si {Id} sigue vivo.", node.Id);
+                Log.Error("Nodo {Id} esta muerto.", node.Id);
                 return false;   
             }
         }
