@@ -6,6 +6,7 @@ using Spotify.Application.Common.Interfaces.Services;
 using Spotify.Infrastructure.Services.Storage;
 using Spotify.Application.Common.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Spotify.Infrastructure.Services.Chord;
 
 namespace Spotify.Infrastructure
 {
@@ -29,6 +30,8 @@ namespace Spotify.Infrastructure
 
             // External Services
             services.AddScoped<IStorageService,StorageService>(); 
+
+            services.AddSingleton<IChordManagerService, ChordManagerService>();           
             return services;
         }
     }

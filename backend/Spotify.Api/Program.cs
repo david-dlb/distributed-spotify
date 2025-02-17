@@ -2,6 +2,7 @@ using Spotify.Application;
 using Spotify.Infrastructure;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
+using Spotify.Infrastructure.Services.Chord;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,12 +27,17 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddApplicationServices()
     .AddInfrastructureServices(builder.Configuration); 
+
+var urls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? "http://localhost:6002";
+Log.Information(urls); 
+builder.WebHost.UseUrls(urls);
 
 Log.Information("Building application.");
 var app = builder.Build();
@@ -53,6 +59,26 @@ app.MapControllers();
 try {
     var url = app.Configuration["ASPNETCORE_URLS"];
     Log.Information($"The application is running at: {url}");
+    var chordManager = ActivatorUtilities.CreateInstance<ChordManagerService>(app.Services); 
+    await chordManager.JoinNetworkAsync(app.Configuration["KNOWN_NODE_URL"] ?? "http://localhost:6001");
+    var serviceScopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+
+    var _stabilizationTimer = new Timer(async (_) =>
+    {
+        try
+        {
+            using (var scope = serviceScopeFactory.CreateScope())
+            {
+                var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
+                await chordManager.StabilizeAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error en la tarea de estabilización.");
+        }
+    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+
     app.Run();
 }catch(Exception e){
     Log.Error(e, "There is an error when tried to run the app.");
