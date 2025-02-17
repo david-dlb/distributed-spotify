@@ -71,6 +71,7 @@ try {
             {
                 var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
                 await chordManager.StabilizeAsync();
+                await chordManager.FixFingerTableAsync();
             }
         }
         catch (Exception ex)

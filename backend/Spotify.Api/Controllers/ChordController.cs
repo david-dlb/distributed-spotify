@@ -28,9 +28,9 @@ namespace Spotify.WebAPI.Controllers
         }
 
         [HttpGet("predecessor")]
-        public ActionResult<string> GetPredecessor()
+        public async Task<ActionResult<string>> GetPredecessor()
         {
-            return Ok(_chordService.Predecessor?.Url ?? "");
+            return Ok(await _chordService.GetPredecessor());
         }
 
         [HttpPost("store/{key}")]
@@ -45,6 +45,12 @@ namespace Spotify.WebAPI.Controllers
         {
             var value = await _chordService.GetDataAsync(key);
             return Ok(value);
+        }
+        
+        [HttpGet("alive")]
+        public async Task<IActionResult> IsAlive()
+        {
+            return await Task.FromResult(Ok());
         }
     }
 }
