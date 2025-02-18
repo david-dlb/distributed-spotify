@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
-using System.ComponentModel.DataAnnotations;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
@@ -198,7 +196,7 @@ namespace Spotify.Infrastructure.Services.Chord
             }
             for (var i = _m - 1; i >= 0; i--)
             {
-                if (_fingerTable.TryGetValue(i, out var fingerNode) && IsIdInInterval(fingerNode.Id, _localNode.Id, id))
+                if (_fingerTable.TryGetValue(i, out var fingerNode) && IsIdInInterval(fingerNode.Id, _localNode.Id, id) && await checkIfNodeIsAlive(fingerNode))
                 {
                     if(!logsOff)
                     {
@@ -350,6 +348,12 @@ namespace Spotify.Infrastructure.Services.Chord
             {
                 Log.Information("Dato recuperado localmente para la clave {Key}.", key);
                 return DataStore.TryGetValue(key, out var value) ? value : null;
+            }
+            if(!await checkIfNodeIsAlive(responsibleNode))
+            {
+                // Da tiempo a que se reestablice el nodo
+                await Task.Delay(3000);
+                return await GetDataAsync(key); 
             }
 
             var dataUrl = $"{responsibleNode.Url}/api/chord/data/{key}";
