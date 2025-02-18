@@ -234,57 +234,10 @@ namespace Spotify.Infrastructure.Services.Chord
         public async Task StabilizeAsync()
         {
             Log.Information("Iniciando proceso de estabilización para nodo local {LocalUrl}.", _localNode.Url);
-            try
-            {                
-                if(Successor!.Url == _localNode.Url)
-                {
-                    // This means that this node belives it's in a unitary ring
-                    Log.Information("El succesor de este nodo es el mismo.");
-                    if(Predecessor!.Url != _localNode.Url)
-                    {
-                        Log.Information("Igualando Successor a Predecessor {Id}, red de 2 nodos identificada", Predecessor.Id);
-                        Successor = Predecessor; 
-                    }
-                    return; 
-                }
-                Log.Information("Revisando si mi sucessor {Id} esta vivo.", Successor!.Id);
-                var isAlive = await checkIfNodeIsAlive(Successor);
-                if(!isAlive){
-                    Log.Information("Succesor {Id} esta muerto. Reincorporando nodo al anillo usando su predecesor.", Successor!.Id);
-                    Successor = Predecessor; 
-                    return; 
-                } 
-
-                var predecessorUrlEndpoint = $"{Successor.Url}/api/chord/predecessor";
-                Log.Information("Consultando predecessor del Successor en {Endpoint}", predecessorUrlEndpoint);
-                var response = await _httpClient.GetAsync(predecessorUrlEndpoint);
-                if (response.IsSuccessStatusCode)
-                {
-                    var predecessorUrl = await response.Content.ReadAsStringAsync();
-                    Log.Information("Predecessor recibido: {PredecessorUrl}", predecessorUrl);
-                    if (!string.IsNullOrEmpty(predecessorUrl))
-                    {
-                        var predecessor = new ChordNode(predecessorUrl);
-                        if (predecessor.Id == _localNode.Id)
-                        {
-                            Log.Information("Nodo {Id1} mantiene su sucessor {Id2}.", _localNode.Id, Successor.Id);
-                            return; 
-                        }
-                        if (IsIdInInterval(predecessor.Id, _localNode.Id, Successor.Id))
-                        {
-                            Log.Information("Actualizando Successor. Nuevo Successor: {PredecessorUrl}", predecessorUrl);
-                            Successor = predecessor;
-                        }
-                    }
-                }
-                var notifyUrl = $"{Successor.Url}/api/chord/notify?nodeUrl={_localNode.Url}";
-                Log.Information("Enviando notificación de estabilización a Successor en {NotifyUrl}", notifyUrl);
-                await _httpClient.PostAsync(notifyUrl, null);
+            if(!await isStable()){
+                await StabilizeAsync(); 
             }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error durante la estabilización del nodo {LocalUrl}", _localNode.Url);
-            }
+            Log.Information("Nodo {Id} estabilizado con predecessor {PId} y succesor {SId} .", _localNode.Id, Predecessor.Id, Successor.Id);
         }
 
         public async Task FixFingerTableAsync()
@@ -438,6 +391,63 @@ namespace Spotify.Infrastructure.Services.Chord
             } catch {
                 Log.Error("Nodo {Id} esta muerto.", node.Id);
                 return false;   
+            }
+        }
+
+        private async Task<bool> isStable()
+        {
+            Log.Information("Revisando que el nodo {ID} sea estable.", _localNode.Id);
+            try
+            {                
+                if(Successor!.Url == _localNode.Url)
+                {
+                    // This means that this node belives it's in a unitary ring
+                    Log.Information("El succesor de este nodo es el mismo.");
+                    if(Predecessor!.Url != _localNode.Url)
+                    {
+                        Log.Information("Igualando Successor a Predecessor {Id}, red de 2 nodos identificada", Predecessor.Id);
+                        Successor = Predecessor;
+                        return false;  
+                    }
+                    return true; 
+                }
+
+                Log.Information("Revisando si mi sucessor {Id} esta vivo.", Successor!.Id);
+                var isAlive = await checkIfNodeIsAlive(Successor);
+                if(!isAlive){
+                    Log.Information("Succesor {Id} esta muerto. Reincorporando nodo al anillo usando su predecesor.", Successor!.Id);
+                    Successor = Predecessor; 
+                    return false; 
+                } 
+
+                var predecessorUrlEndpoint = $"{Successor.Url}/api/chord/predecessor";
+                Log.Information("Consultando predecessor del Successor en {Endpoint}", predecessorUrlEndpoint);
+                var response = await _httpClient.GetAsync(predecessorUrlEndpoint);
+                if (response.IsSuccessStatusCode)
+                {
+                    var predecessorUrl = await response.Content.ReadAsStringAsync();
+                    Log.Information("Predecessor recibido: {PredecessorUrl}", predecessorUrl);
+                    if (!string.IsNullOrEmpty(predecessorUrl))
+                    {
+                        var predecessor = new ChordNode(predecessorUrl);
+                        if (predecessor.Id == _localNode.Id)
+                        {
+                            Log.Information("Nodo {Id1} mantiene su sucessor {Id2}.", _localNode.Id, Successor.Id);
+                            return true; 
+                        }
+                        if (IsIdInInterval(predecessor.Id, _localNode.Id, Successor.Id))
+                        {
+                            Log.Information("Actualizando Successor. Nuevo Successor: {PredecessorUrl}", predecessorUrl);
+                            Successor = predecessor;
+                        }
+                    }
+                }
+                var notifyUrl = $"{Successor.Url}/api/chord/notify?nodeUrl={_localNode.Url}";
+                Log.Information("Enviando notificación de estabilización a Successor en {NotifyUrl}", notifyUrl);
+                await _httpClient.PostAsync(notifyUrl, null);
+                return false; 
+            } catch {
+                return false; 
             }
         }
     }
