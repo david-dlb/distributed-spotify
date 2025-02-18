@@ -1,12 +1,21 @@
 using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 
+
+
 namespace Spotify.Infrastructure.Services.Chord
 {
+
+    public record StoreDataResponse(string Url, string Key){}
+
     public class ChordManagerService : IChordManagerService, IDisposable
     {
         private readonly HttpClient _httpClient;
@@ -15,8 +24,8 @@ namespace Spotify.Infrastructure.Services.Chord
         private readonly ChordNode _localNode;
         private readonly ConcurrentDictionary<int, ChordNode> _knownNodes = new();
         private ConcurrentDictionary<int, ChordNode> _fingerTable = new();
-        public ChordNode? Predecessor { get; set; }
-        public ChordNode? Successor { get; set; }
+        public ChordNode Predecessor { get; set; }
+        public ChordNode Successor { get; set; }
         public ConcurrentDictionary<string, string> DataStore { get; } = new();
 
         public ChordManagerService(
@@ -39,6 +48,8 @@ namespace Spotify.Infrastructure.Services.Chord
 
             Log.Information($"Inicializando nodo local en {localUrl}");
             _localNode = new ChordNode(localUrl);
+            Predecessor = _localNode;
+            Successor = _localNode;
             InitializeFingerTable();
         }
 
@@ -49,13 +60,10 @@ namespace Spotify.Infrastructure.Services.Chord
 
             for (var i = 0; i < _m; i++)
             {
-                int fingerId = (_localNode.Id + (1 << i)) % _m; // Calculamos la ID en el anillo de _m nodos
                 _fingerTable[i] = _localNode; // Inicialmente nos apuntamos a nosotros mismos
             }
-
+            
             // Asumimos que estamos en una red unitaria
-            Successor = _localNode;
-            Predecessor = _localNode;
             Log.Information($"Finger table inicializada con un anillo de {_m} nodos.");
         }
 
@@ -78,7 +86,6 @@ namespace Spotify.Infrastructure.Services.Chord
 
             // Buscar el sucesor para el nodo local a partir del nodo conocido.
             Successor = await FindSuccessorAsync(_localNode.Id, knownNode);
-            Predecessor = Successor; 
 
             //  TODO: parche para pruebas!!
             Successor.Url = "http://localhost:6001";
@@ -108,42 +115,64 @@ namespace Spotify.Infrastructure.Services.Chord
             Log.Information("Nodo {LocalUrl} se ha unido a la red. Successor: {SuccessorUrl}", _localNode.Url, Successor.Url);
         }
 
-        public async Task<string> FindSuccessorAsync(int id)
+        public async Task<string> FindSuccessorAsync(int id, bool logsOff = false)
         {
-            Log.Information("Buscando Successor para ID: {Id}", id);
-
+            if(!logsOff)
+            {
+                Log.Information("Buscando Successor para ID: {Id}", id);
+            }
             // Caso especial: Si el nodo es único en el anillo, retorna el nodo local.
             if (Successor?.Url == _localNode.Url && Predecessor?.Url == _localNode.Url)
             {
-                Log.Information("Único nodo en el anillo. Retornando nodo local {LocalUrl} como Successor.", _localNode.Url);
+                if(!logsOff){
+                    Log.Information("Único nodo en el anillo. Retornando nodo local {LocalUrl} como Successor.", _localNode.Url);
+                }
                 return _localNode.Url;
             }
 
-            if (IsIdInInterval(id, _localNode.Id, Successor!.Id))
+            if (IsIdInInterval(id, _localNode.Id, Successor!.Id, logsOff))
             {
+                if(!logsOff){
                 Log.Information("ID {Id} se encuentra en el intervalo ({LocalId}, {SuccessorId}]. Retornando Successor {SuccessorUrl}.", 
                     id, _localNode.Id, Successor.Id, Successor.Url);
+                }
                 return Successor.Url;
             }
 
+            if (IsIdInInterval(id, Predecessor!.Id,_localNode.Id,logsOff))
+            {
+                if(!logsOff)
+                {
+                    Log.Information("ID {Id} se encuentra en el intervalo ({Predecessor}, {LocalId}]. Retornando nodo local {LocalUrl}.", 
+                        id, Predecessor.Id, _localNode.Id, _localNode.Url);
+                }
+                return _localNode.Url;
+            }
+
             var closestNode = await GetClosestPrecedingNodeAsync(id);
-            Log.Information("Nodo más cercano a {Id} es {ClosestNodeUrl}. Buscando Successor desde ese nodo.", id, closestNode.Url);
-            var resultNode = await FindSuccessorAsync(id, closestNode);
-            Log.Information("Successor encontrado para ID {Id} es {SuccessorUrl}.", id, resultNode.Url);
+            if(!logsOff){
+                Log.Information("Nodo más cercano a {Id} es {ClosestNodeUrl}. Buscando Successor desde ese nodo.", id, closestNode.Url);
+            }
+
+            if(closestNode.Id == _localNode.Id)
+            {
+                return _localNode.Url; 
+            }
+            
+            var resultNode = await FindSuccessorAsync(id, closestNode,logsOff);
+            if(!logsOff){
+                Log.Information("Successor encontrado para ID {Id} es {SuccessorUrl}.", id, resultNode.Url);
+            }
             return resultNode.Url;
         }
 
-        private async Task<ChordNode> FindSuccessorAsync(int id, ChordNode startNode)
+        private async Task<ChordNode> FindSuccessorAsync(int id, ChordNode startNode,bool logsOff = false)
         {
-            Log.Information("Buscando Successor para ID {Id} a partir de nodo {StartNodeUrl}.", id, startNode.Url);
-
-            // Caso especial: Si el nodo de partida es el nodo local, se asume nodo único.
-            if (startNode.Id == _localNode.Id)
+            if(startNode.Id == _localNode.Id)
             {
-                Log.Information("Nodo de partida es el nodo local. Retornando nodo local {LocalUrl}.", _localNode.Url);
-                return _localNode;
+                return new ChordNode(await FindSuccessorAsync(id,logsOff)); 
             }
-
+            // Only if the start node is not the local
             try
             {
                 var url = $"{startNode.Url}/api/chord/find-successor?id={id}";
@@ -161,18 +190,26 @@ namespace Spotify.Infrastructure.Services.Chord
             }
         }
 
-        private async Task<ChordNode> GetClosestPrecedingNodeAsync(int id)
+        private async Task<ChordNode> GetClosestPrecedingNodeAsync(int id,bool logsOff = false)
         {
-            Log.Information("Buscando el nodo más cercano anterior a {Id} en la finger table.", id);
+            if(!logsOff)
+            {
+                Log.Information("Buscando el nodo más cercano anterior a {Id} en la finger table.", id);
+            }
             for (var i = _m - 1; i >= 0; i--)
             {
                 if (_fingerTable.TryGetValue(i, out var fingerNode) && IsIdInInterval(fingerNode.Id, _localNode.Id, id))
                 {
-                    Log.Information("Nodo {FingerNodeUrl} (finger {i}) es el más cercano anterior a {Id}.", fingerNode.Url, i, id);
+                    if(!logsOff)
+                    {
+                        Log.Information("Nodo {FingerNodeUrl} (finger {i}) es el más cercano anterior a {Id}.", fingerNode.Url, i, id);
+                    }
                     return fingerNode;
                 }
             }
-            Log.Information("Ningún nodo en la finger table precede a {Id}. Retornando nodo local {LocalUrl}.", id, _localNode.Url);
+            if(!logsOff){
+                Log.Information("Ningún nodo en la finger table precede a {Id}. Retornando nodo local {LocalUrl}.", id, _localNode.Url);
+            }
             return _localNode;
         }
 
@@ -201,7 +238,6 @@ namespace Spotify.Infrastructure.Services.Chord
             Log.Information("Iniciando proceso de estabilización para nodo local {LocalUrl}.", _localNode.Url);
             try
             {                
-
                 if(Successor!.Url == _localNode.Url)
                 {
                     // This means that this node belives it's in a unitary ring
@@ -258,8 +294,8 @@ namespace Spotify.Infrastructure.Services.Chord
             Log.Information("Iniciando actualización de la finger table para nodo {LocalUrl}", _localNode.Url);
             for (var i = 0; i < _m; i++)
             {
-                var fingerId = _localNode.Id + i;
-                _fingerTable[i] = await FindSuccessorAsync(fingerId, _localNode);
+                var fingerId = (_localNode.Id + i) % _m;
+                _fingerTable[i] = await FindSuccessorAsync(fingerId, _localNode, true);
             }                
         }
 
@@ -267,8 +303,9 @@ namespace Spotify.Infrastructure.Services.Chord
         {
             Log.Information("Almacenando dato. Clave: {Key}, Valor: {Value}", key, value);
             var keyHash = GenerateSha1Hash(key);
-            Log.Information("Hash generado para clave {Key}: {KeyHash} % {M} = {Nodo}", key, keyHash, _m, keyHash%_m);
-            var responsibleNode = await FindSuccessorAsync(keyHash%_m, _localNode);
+            
+            Log.Information("Hash generado para clave {Key}: {KeyHash} % {M} = {Nodo}", key, keyHash, _m, keyHash);
+            var responsibleNode = await FindSuccessorAsync(keyHash, _localNode);
             Log.Information("Nodo responsable para la clave {Key} es {ResponsibleUrl}", key, responsibleNode.Url);
             
             if (responsibleNode.Url == _localNode.Url)
@@ -280,10 +317,22 @@ namespace Spotify.Infrastructure.Services.Chord
             
             var storeUrl = $"{responsibleNode.Url}/api/chord/store/{key}";
             Log.Information("Enviando dato a nodo remoto en {StoreUrl}", storeUrl);
-            await _httpClient.PostAsync(
-                storeUrl, 
-                new StringContent(value, Encoding.UTF8, "application/json"));
+            try{
+                var jsonContent = JsonSerializer.Serialize(value);
+                var response = await _httpClient.PostAsync(
+                    storeUrl, 
+                    new StringContent(jsonContent, Encoding.UTF8, "application/json"));
+
+                response.EnsureSuccessStatusCode();
+                var result = await response.Content.ReadFromJsonAsync<StoreDataResponse>(cancellationToken:default); 
+                return result!.Url; 
+            }catch (Exception e){
+                Log.Error(e.Message); 
+                Log.Error("Enviando dato a nodo remoto en {StoreUrl}", storeUrl);
+                // TODO: esperar a que el nodo se estabilice para entonces poder enviar el dato a su successor
+            }
             
+
             Log.Information("Dato almacenado en nodo remoto {ResponsibleUrl} para clave {Key}", responsibleNode.Url, key);
             return responsibleNode.Url;
         }
@@ -292,8 +341,9 @@ namespace Spotify.Infrastructure.Services.Chord
         {
             Log.Information("Recuperando dato para la clave {Key}", key);
             var keyHash = GenerateSha1Hash(key);
-            Log.Information("Hash generado para clave {Key}: {KeyHash} % {M} = {Nodo}", key, keyHash, _m, keyHash % _m);
-            var responsibleNode = await FindSuccessorAsync(keyHash % _m, _localNode);
+
+            Log.Information("Hash generado para clave {Key}: {KeyHash} % {M} = {Nodo}", key, keyHash, _m, keyHash);
+            var responsibleNode = await FindSuccessorAsync(keyHash, _localNode);
             Log.Information("Nodo responsable para la clave {Key} es {ResponsibleUrl}", key, responsibleNode.Url);
             
             if (responsibleNode.Url == _localNode.Url)
@@ -310,12 +360,15 @@ namespace Spotify.Infrastructure.Services.Chord
             return result;
         }
 
-        private bool IsIdInInterval(int id, int start, int end)
+        private bool IsIdInInterval(int id, int start, int end, bool logsOff = false)
         {
             // Caso de nodo único: start y end son iguales
             if (start == end)
             {
-                Log.Information("Intervalo detectado como nodo único (start == end). Retornando true para cualquier ID.");
+                if(!logsOff)
+                {
+                    Log.Information("Intervalo detectado como nodo único (start == end). Retornando true para cualquier ID.");
+                }
                 return true;
             }
 
@@ -323,14 +376,20 @@ namespace Spotify.Infrastructure.Services.Chord
             if (start < end)
             {
                 var result = id > start && id <= end;
-                Log.Information("Evaluando intervalo sin wrap-around: ({Start}, {End}]. ID: {Id} -> {Result}", start, end, id, result);
+                if(!logsOff)
+                {
+                    Log.Information("Evaluando intervalo sin wrap-around: ({Start}, {End}]. ID: {Id} -> {Result}", start, end, id, result);
+                }
                 return result;
             }
             else
             {
                 // Caso con wrap-around: el intervalo es (start, max] U [min, end]
                 var result = (id > start && id <= _m )|| (id >= 0 && id <= end);
-                Log.Information("Evaluando intervalo con wrap-around: ({Start}, max] U [min, {End}]. ID: {Id} -> {Result}", start, end, id, result);
+                if(!logsOff)
+                {
+                    Log.Information("Evaluando intervalo con wrap-around: ({Start}, max] U [min, {End}]. ID: {Id} -> {Result}", start, end, id, result);
+                }
                 return result;
             }
         }
@@ -342,7 +401,7 @@ namespace Spotify.Infrastructure.Services.Chord
             var hashBytes = sha1.ComputeHash(inputBytes);
             int hashInt = BitConverter.ToInt32(hashBytes, 0);
             Log.Information("Hash SHA1 generado para entrada '{Input}': {Hash}", input, hashInt);
-            return hashInt;
+            return (hashInt % _m + _m)%_m;
         }
 
         public void Dispose()
@@ -355,15 +414,15 @@ namespace Spotify.Infrastructure.Services.Chord
         {
             if(Predecessor == null)
             {
-                return ""; 
+                Predecessor = _localNode; 
+                return _localNode.Url; 
             }
             Log.Information("Revisando si mi predecesor {Id} sigue vivo.", Predecessor!.Id);
             var isAlive = await checkIfNodeIsAlive(Predecessor);  
             if(!isAlive)
             {
-                Log.Information("Mi predecesor esta muerto.");
-                Predecessor = null; 
-                return "";
+                Log.Information("Mi predecesor esta muerto. Me asigno a mi mismo como predecessor.");
+                Predecessor = _localNode; 
             }
             return Predecessor!.Url; 
         }
