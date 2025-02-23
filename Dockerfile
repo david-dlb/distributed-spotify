@@ -2,12 +2,11 @@ FROM node:21-alpine
 
 WORKDIR /app
 
-COPY package.json /app
+COPY package*.json /app
 
 COPY . /app
 
 RUN npm add vite 
-RUN apk add --no-cache python3
 
 COPY startup.sh /usr/local/bin/startup.sh
 
