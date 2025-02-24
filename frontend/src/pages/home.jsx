@@ -23,7 +23,7 @@ const Home = () => {
   return (
     <div className="">
       
-
+{window.env.URL}
     <Navbar/>
 
     <CardAlbum albums={albums}/>
