@@ -9,7 +9,7 @@ def write(filename, value):
         # Eliminar elementos vacíos (si hay)
         parts = [parte for parte in parts if parte.strip()]
         
-        parts[1] = "http://" + value[0] + ":8080"
+        parts[1] = "http://" + value[0] + ":6002" + "/api"
         text = ''
 
         for i in range(len(parts)):
@@ -18,8 +18,8 @@ def write(filename, value):
                 continue
             text += parts[i] + "\""
 
-        with open(filename, 'w') as file:
-            file.write(text)
+        # with open(filename, 'w') as file:
+            # file.write(text)
         return text
     
     except Exception as e:
