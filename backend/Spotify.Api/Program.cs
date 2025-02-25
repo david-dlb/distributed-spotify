@@ -60,11 +60,6 @@ try {
     var url = app.Configuration["ASPNETCORE_URLS"];
     Log.Information($"The application is running at: {url}");
     var serviceScopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
-    using (var scope = serviceScopeFactory.CreateScope())
-    {
-        var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
-        await chordManager.JoinNetworkAsync(app.Configuration["KNOWN_NODE_URL"] ?? "http://localhost:6001");
-    }
 
     var _stabilizationTimer = new Timer(async (_) =>
     {
@@ -73,13 +68,13 @@ try {
             using (var scope = serviceScopeFactory.CreateScope())
             {
                 var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
-                await chordManager.StabilizeAsync();
-                await chordManager.FixFingerTableAsync();
+                await chordManager.BroadCastIAmAliveAsync();
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error en la tarea de estabilización.");
+            Log.Error(ex.Message);
         }
     }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
 

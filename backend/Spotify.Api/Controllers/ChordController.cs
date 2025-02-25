@@ -23,14 +23,14 @@ namespace Spotify.WebAPI.Controllers
         [HttpPost("notify")]
         public async Task<IActionResult> Notify([FromQuery] string nodeUrl)
         {
-            await _chordService.HandShakeAsync(nodeUrl);
+            await _chordService.HandleAliveFrom(nodeUrl);
             return Ok();
         }
 
         [HttpGet("predecessor")]
         public async Task<ActionResult<string>> GetPredecessor()
         {
-            return Ok(await _chordService.GetPredecessor());
+            return Ok(_chordService.Predecessor);
         }
 
         [HttpPost("store/{key}")]

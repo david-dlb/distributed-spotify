@@ -31,7 +31,10 @@ namespace Spotify.Infrastructure
             // External Services
             services.AddScoped<IStorageService,StorageService>(); 
 
+
             services.AddSingleton<IChordManagerService, ChordManagerService>();           
+            
+            services.AddHostedService<UdpBroadcastListener>();
             return services;
         }
     }
