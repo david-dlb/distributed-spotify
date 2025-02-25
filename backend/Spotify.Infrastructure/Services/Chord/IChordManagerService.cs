@@ -5,7 +5,7 @@ namespace Spotify.Infrastructure.Services.Chord
         Task BroadCastIAmAliveAsync();
         Task HandleAliveFrom(string node);         
         Task<string> FindSuccessorAsync(int id);
-        Task<string> StoreDataAsync(string key, string value);
+        Task<StoreDataResponse> StoreDataAsync(string key, string value);
         Task<string?> GetDataAsync(string key);
         Task<string?> GetLocalDataAsync(string key);
         Task ForwardDataCatalog(); 

@@ -105,7 +105,7 @@ namespace Spotify.Infrastructure.Services.Chord
             }
         }
 
-        public async Task<string> StoreDataAsync(string key, string value)
+        public async Task<StoreDataResponse> StoreDataAsync(string key, string value)
         {       
             // Se calcula el hash de la clave para determinar la posición en el anillo
             int keyHash = key.GenerateIntHash(_m);
@@ -115,7 +115,7 @@ namespace Spotify.Infrastructure.Services.Chord
                 // El nodo local es responsable, se almacena localmente
                 DataStore[key] = value;
                 var responseObj = new StoreDataResponse(_localNode.Url, key);
-                return JsonSerializer.Serialize(responseObj);
+                return responseObj;
             }
             else
             {
@@ -125,7 +125,7 @@ namespace Spotify.Infrastructure.Services.Chord
                 {
                     DataStore[key] = value;
                     var responseObj = new StoreDataResponse(_localNode.Url, key);
-                    return JsonSerializer.Serialize(responseObj);
+                    return responseObj;
                 }
                 else
                 {
@@ -134,7 +134,7 @@ namespace Spotify.Infrastructure.Services.Chord
                     var response = await _httpClient.PostAsync($"{nodeUrl}/api/chord/store/{key}", content);
                     if (response.IsSuccessStatusCode)
                     {
-                        return await response.Content.ReadAsStringAsync();
+                        return (await response.Content.ReadFromJsonAsync<StoreDataResponse>())!;
                     }
                     else
                     {

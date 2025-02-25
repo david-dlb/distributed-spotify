@@ -96,6 +96,24 @@ try {
         }
     }, null, TimeSpan.Zero, TimeSpan.FromSeconds(4));
 
+    var _healthCheck = new Timer(async (_) =>
+    {
+        try
+        {
+            using (var scope = serviceScopeFactory.CreateScope())
+            {
+                var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
+                await chordManager.HealthCheck();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error en la tarea de revision de salud.");
+            Log.Error(ex.Message);
+        }
+    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
+
+
 
 
     app.Run();

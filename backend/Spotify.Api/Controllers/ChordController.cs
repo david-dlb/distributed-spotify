@@ -23,8 +23,8 @@ namespace Spotify.WebAPI.Controllers
         [HttpPost("store/{key}")]
         public async Task<IActionResult> Store(string key, [FromBody] string value)
         {
-            var nodeUrl = await _chordService.StoreDataAsync(key, value);
-            return Ok(new StoreDataResponse(nodeUrl,key));
+            var response = await _chordService.StoreDataAsync(key, value);
+            return Ok(response);
         }
 
         [HttpGet("data/{key}")]
