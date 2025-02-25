@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
@@ -9,6 +10,7 @@ using Serilog;
 namespace Spotify.Infrastructure.Services.Chord
 {
     public record StoreDataResponse(string Url, string Key);
+    public record DataCatalog(List<string> Keys);
 
     public class ChordManagerService : IChordManagerService, IDisposable
     {
@@ -48,7 +50,7 @@ namespace Spotify.Infrastructure.Services.Chord
                     return true;
                 }
                 var response = await _httpClient.GetAsync($"{node.Url}/api/chord/alive");
-                return response.IsSuccessStatusCode;
+                return response.StatusCode == HttpStatusCode.OK; 
             }
             catch
             {
@@ -87,11 +89,13 @@ namespace Spotify.Infrastructure.Services.Chord
             var isAlive = await CheckIfNodeIsAlive(Successor);
             if (!isAlive)
             {
+                Log.Information("Successor is dead, waiting for stabilization."); 
                 await Task.Delay(broadCastTimeOut + 200);
             }
+
             try
             {
-                return await _httpClient.GetStringAsync($"{Successor.Url}/api/chord/find-successor/{id}");
+                return await _httpClient.GetStringAsync($"{Successor.Url}/api/chord/find-successor?id={id}");
             }
             catch
             {
@@ -126,7 +130,7 @@ namespace Spotify.Infrastructure.Services.Chord
                 {
                     var payload = JsonSerializer.Serialize(new { key, value });
                     var content = new StringContent(payload, Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PostAsync($"{nodeUrl}/api/chord/store", content);
+                    var response = await _httpClient.PostAsync($"{nodeUrl}/api/chord/store/{key}", content);
                     if (response.IsSuccessStatusCode)
                     {
                         return await response.Content.ReadAsStringAsync();
@@ -139,7 +143,7 @@ namespace Spotify.Infrastructure.Services.Chord
             }
         }
 
-        public async Task<string> GetDataAsync(string key)
+        public async Task<string?> GetDataAsync(string key)
         {
             int keyHash = key.GenerateIntHash(_m);
 
@@ -151,7 +155,7 @@ namespace Spotify.Infrastructure.Services.Chord
                 }
                 else
                 {
-                    throw new KeyNotFoundException($"La clave {key} no se encontró en el nodo {_localNode.Url}.");
+                    return null; 
                 }
             }
             else
@@ -165,7 +169,7 @@ namespace Spotify.Infrastructure.Services.Chord
                     }
                     else
                     {
-                        throw new KeyNotFoundException($"La clave {key} no se encontró en el nodo {_localNode.Url}.");
+                        return null; 
                     }
                 }
                 else
@@ -201,6 +205,48 @@ namespace Spotify.Infrastructure.Services.Chord
         {
             Log.Information("Liberando recursos del ChordManagerService para el nodo {LocalUrl}.", _localNode.Url);
             GC.SuppressFinalize(this);
+        }
+
+        public async Task ForwardDataCatalog()
+        {
+            if(Successor.Id == _localNode.Id)
+                return; 
+
+            // Create catalog 
+            DataCatalog catalog = new([.. DataStore.Keys]); 
+            var dataToSend = JsonContent.Create(catalog); 
+            await _httpClient.PostAsync($"{Successor.Url}/api/chord/catalog", dataToSend);            
+        }
+
+        public async Task ProcessCatalog(DataCatalog catalog)
+        {
+            foreach (var key in catalog.Keys)
+            {
+                if(!DataStore.ContainsKey(key))
+                {
+                    Log.Information("Replication data with key: {K}", key); 
+                    string data = await _httpClient.GetStringAsync($"{Predecessor.Url}/api/chord/data/{key}");
+                    DataStore.TryAdd(key,data); 
+                }   
+            }
+        }
+
+        public async Task HealthCheck()
+        {
+            var successorIsAlive = await CheckIfNodeIsAlive(Successor); 
+            var predecessorIsAlive = await CheckIfNodeIsAlive(Predecessor); 
+            if(!successorIsAlive)
+            {
+                Log.Information("Successor is dead, waiting for stabilization."); 
+                Successor = _localNode;
+            }
+            if(!predecessorIsAlive)
+            {
+                Log.Information("Predecessor is dead, waiting for stabilization."); 
+                Predecessor = _localNode;
+            }
+            if(!predecessorIsAlive || !successorIsAlive)
+                await Task.Delay(broadCastTimeOut + 200);
         }
     }
 }

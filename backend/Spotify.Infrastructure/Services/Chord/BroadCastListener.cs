@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,10 +11,11 @@ public class UdpBroadcastListener : BackgroundService
     private readonly ILogger<UdpBroadcastListener> _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly UdpClient _udpClient;
-    private readonly int _port = 6001;
+    private int _port;
 
-    public UdpBroadcastListener(ILogger<UdpBroadcastListener> logger, IServiceScopeFactory serviceScopeFactory)
+    public UdpBroadcastListener(ILogger<UdpBroadcastListener> logger, IServiceScopeFactory serviceScopeFactory, IConfiguration configuration)
     {
+        _port = int.Parse(configuration["ASPNETCORE_URLS"]?.Split(':').Last() ?? "5000");
         _logger = logger;
         _serviceScopeFactory = serviceScopeFactory;
         _udpClient = new UdpClient(_port);

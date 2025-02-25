@@ -20,19 +20,6 @@ namespace Spotify.WebAPI.Controllers
             return Ok(await _chordService.FindSuccessorAsync(id));
         }
 
-        [HttpPost("notify")]
-        public async Task<IActionResult> Notify([FromQuery] string nodeUrl)
-        {
-            await _chordService.HandleAliveFrom(nodeUrl);
-            return Ok();
-        }
-
-        [HttpGet("predecessor")]
-        public async Task<ActionResult<string>> GetPredecessor()
-        {
-            return Ok(_chordService.Predecessor);
-        }
-
         [HttpPost("store/{key}")]
         public async Task<IActionResult> Store(string key, [FromBody] string value)
         {
@@ -51,6 +38,13 @@ namespace Spotify.WebAPI.Controllers
         public async Task<IActionResult> IsAlive()
         {
             return await Task.FromResult(Ok());
+        }
+
+        [HttpPost("catalog")]
+        public async Task<IActionResult> ReceiveCatalog([FromBody] DataCatalog catalog)
+        {
+            await _chordService.ProcessCatalog(catalog);
+            return Ok();
         }
     }
 }

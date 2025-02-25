@@ -61,7 +61,7 @@ try {
     Log.Information($"The application is running at: {url}");
     var serviceScopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
 
-    var _stabilizationTimer = new Timer(async (_) =>
+    var _broadCastTimer = new Timer(async (_) =>
     {
         try
         {
@@ -69,6 +69,7 @@ try {
             {
                 var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
                 await chordManager.BroadCastIAmAliveAsync();
+                await chordManager.HealthCheck();
             }
         }
         catch (Exception ex)
@@ -77,6 +78,25 @@ try {
             Log.Error(ex.Message);
         }
     }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+
+    var _forwardDataTimer = new Timer(async (_) =>
+    {
+        try
+        {
+            using (var scope = serviceScopeFactory.CreateScope())
+            {
+                var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
+                await chordManager.ForwardDataCatalog();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error en la tarea de replicacion.");
+            Log.Error(ex.Message);
+        }
+    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(4));
+
+
 
     app.Run();
 }catch(Exception e){
