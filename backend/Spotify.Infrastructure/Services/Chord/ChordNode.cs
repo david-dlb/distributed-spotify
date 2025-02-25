@@ -4,5 +4,6 @@ namespace Spotify.Infrastructure.Services.Chord
     {
         public int Id { get; } = int.Parse(ip.Split('.').Last())%maxNodeValue;
         public string Url { get; set; } = "http://" + ip + ":6001" ;
+        public string Ip { get; set; } = ip;
     }
 }

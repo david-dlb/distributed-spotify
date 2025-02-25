@@ -69,7 +69,6 @@ try {
             {
                 var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
                 await chordManager.BroadCastIAmAliveAsync();
-                await chordManager.HealthCheck();
             }
         }
         catch (Exception ex)
@@ -86,6 +85,7 @@ try {
             using (var scope = serviceScopeFactory.CreateScope())
             {
                 var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
+                await chordManager.HealthCheck();
                 await chordManager.ForwardDataCatalog();
             }
         }

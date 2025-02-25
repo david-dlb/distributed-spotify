@@ -39,6 +39,7 @@ namespace Spotify.Infrastructure.Services.Chord
             Log.Information("Inicializando nodo local en {LocalUrl} con Id: {Id} en ip: {Ip}", localUrl, _localNode.Id, localIp);
             Predecessor = _localNode;
             Successor = _localNode;
+            _ = RequestDataCatalog(); 
         }
 
         private async Task<bool> CheckIfNodeIsAlive(ChordNode node)
@@ -105,7 +106,7 @@ namespace Spotify.Infrastructure.Services.Chord
         }
 
         public async Task<string> StoreDataAsync(string key, string value)
-        {
+        {       
             // Se calcula el hash de la clave para determinar la posición en el anillo
             int keyHash = key.GenerateIntHash(_m);
 
@@ -128,7 +129,7 @@ namespace Spotify.Infrastructure.Services.Chord
                 }
                 else
                 {
-                    var payload = JsonSerializer.Serialize(new { key, value });
+                    var payload = JsonSerializer.Serialize(value);
                     var content = new StringContent(payload, Encoding.UTF8, "application/json");
                     var response = await _httpClient.PostAsync($"{nodeUrl}/api/chord/store/{key}", content);
                     if (response.IsSuccessStatusCode)
@@ -212,20 +213,24 @@ namespace Spotify.Infrastructure.Services.Chord
             if(Successor.Id == _localNode.Id)
                 return; 
 
-            // Create catalog 
-            DataCatalog catalog = new([.. DataStore.Keys]); 
+            var catalog = await GetLocalCatalog();
             var dataToSend = JsonContent.Create(catalog); 
-            await _httpClient.PostAsync($"{Successor.Url}/api/chord/catalog", dataToSend);            
+            var response = await _httpClient.PostAsync($"{Successor.Url}/api/chord/catalog/{_localNode.Ip}", dataToSend);            
+            if(!response.IsSuccessStatusCode)
+            {
+                Log.Error("Error al enviar el catálogo al nodo {SuccessorUrl}. Código de estado: {StatusCode}", Successor.Url, response.StatusCode);
+            }
         }
 
-        public async Task ProcessCatalog(DataCatalog catalog)
+        public async Task ProcessCatalog(DataCatalog catalog, string ip)
         {
+            ChordNode sourceNode = new ChordNode(ip, _m); 
             foreach (var key in catalog.Keys)
             {
                 if(!DataStore.ContainsKey(key))
                 {
                     Log.Information("Replication data with key: {K}", key); 
-                    string data = await _httpClient.GetStringAsync($"{Predecessor.Url}/api/chord/data/{key}");
+                    string data = await _httpClient.GetStringAsync($"{sourceNode.Url}/api/chord/data/local/{key}");
                     DataStore.TryAdd(key,data); 
                 }   
             }
@@ -237,16 +242,43 @@ namespace Spotify.Infrastructure.Services.Chord
             var predecessorIsAlive = await CheckIfNodeIsAlive(Predecessor); 
             if(!successorIsAlive)
             {
-                Log.Information("Successor is dead, waiting for stabilization."); 
+                Log.Information("Successor is dead, setting local node as Successor."); 
                 Successor = _localNode;
             }
             if(!predecessorIsAlive)
             {
-                Log.Information("Predecessor is dead, waiting for stabilization."); 
+                Log.Information("Predecessor is dead, setting local node as Predecessor."); 
                 Predecessor = _localNode;
             }
-            if(!predecessorIsAlive || !successorIsAlive)
+        }
+        public async Task RequestDataCatalog()
+        {
+            if(Successor.Id == _localNode.Id)
+            {
                 await Task.Delay(broadCastTimeOut + 200);
+                await RequestDataCatalog();
+                return;   
+            } 
+            Log.Information("Requesting catalog from {SuccessorUrl}", Successor.Url);
+
+            var catalog = await _httpClient.GetFromJsonAsync<DataCatalog>($"{Successor.Url}/api/chord/catalog"); 
+            await ProcessCatalog(catalog!, Successor.Ip); 
+            Log.Information("Catalog processed.");
+        }
+
+        public Task<DataCatalog> GetLocalCatalog()
+        {
+            DataCatalog catalog = new([.. DataStore.Keys]); 
+            return Task.FromResult(catalog);
+        }
+
+        public Task<string?> GetLocalDataAsync(string key)
+        {
+            if(DataStore.TryGetValue(key, out var value))
+            {
+                return Task.FromResult<string?>(value); 
+            }
+            return Task.FromResult<string?>(null);
         }
     }
 }
