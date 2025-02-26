@@ -1,4 +1,4 @@
 
 window.env = {
-    URL : "http://10.0.11.6:6002"
+    URL : "http://localhost:6002/api"
 };
