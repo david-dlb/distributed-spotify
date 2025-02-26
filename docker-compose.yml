@@ -39,9 +39,9 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
-      - 5000:6000
+      - 5000:6002
     expose: 
-      - 6000
+      - 6002
     networks:
       - servers 
 
