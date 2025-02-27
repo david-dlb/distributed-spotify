@@ -95,10 +95,16 @@ export async function request(method, url, data, onSuccess, onError) {
       headers: {
         'accept': 'text/plain',
       },
-    };
-    console.log("hola")
+    }; 
+    if (1) {
+      options.headers = {
+        'accept': 'text/plain',
+      }
+    }
+    if (data && (method !== 'GET' || method != "DELETE")) {
+      options.body = JSON.stringify(data);
+    }
     const ip = await read()
-    console.log("adios")
 
     if (data && (method !== 'GET' || method != "DELETE")) {
       options.body = JSON.stringify(data);
@@ -124,4 +130,39 @@ export async function request(method, url, data, onSuccess, onError) {
     // Llamar a la función de error pasando el mensaje de error
     onError(error.message);
   }
+}
+
+
+
+
+export async function sequentialRequest(method, url, data, onSuccess, onError) {
+  let retries = 0;
+  let successResponse;
+  const maxRetries = 3, delay = 4000
+  let success = null
+  let error = null;
+  while (retries <= maxRetries && !successResponse) {
+    if (success != null) {
+      successResponse = true
+    }
+    try {
+      successResponse = await request(method, url, data, (result) => {success = result}, (error) => {error});
+      
+      if (successResponse) break;
+    } catch (error) {
+      retries++;
+      console.log(`Intento ${retries}: Fallo en la solicitud. Retentando en ${delay}ms...`);
+      
+      if (retries > maxRetries) {
+        successResponse = true
+        onError(`Maximo de intentos alcanzado (${maxRetries})`)
+        throw new Error(`Maximo de intentos alcanzado (${maxRetries})`);
+      }
+
+      // await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  onSuccess(success) 
+  return successResponse;
 }

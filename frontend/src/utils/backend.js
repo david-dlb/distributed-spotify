@@ -1,4 +1,4 @@
-import { request, requestToServer, requestToServerForm } from "./server";
+import { request, requestToServer, requestToServerForm, sequentialRequest } from "./server";
 
 export class BackendService {
     constructor() {
@@ -47,7 +47,7 @@ export class BackendService {
     }
 
     async getAlbums(params, onSuccess, onError) {
-      request("GET", `/Album${params}`, null, (d) => {
+      sequentialRequest("GET", `/Album${params}`, null, (d) => {
         return onSuccess(d)
       }, (e) => {
         return onError(e)
