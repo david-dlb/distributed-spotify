@@ -95,7 +95,7 @@ export async function request(method, url, data, onSuccess, onError) {
     console.log(response)
     // Intentar convertir la respuesta a JSON
     const result = await response.json();
-    
+    console.log(result)
     if (!response.ok) {
       console.log(result)
       handleErrorWithSweetAlert(result.title)

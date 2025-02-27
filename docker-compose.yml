@@ -18,7 +18,7 @@ services:
       - spotify_router
     build:
       context: .
-      dockerfile: frontend/Dockerfile
+      dockerfile: Dockerfile
     container_name: frontend
     image: spotify_frontend
     cap_add:
@@ -33,7 +33,7 @@ services:
     - spotify_router
     build:
       context: .
-      dockerfile: backend/Dockerfile  
+      dockerfile: Dockerfile.backend
     container_name: server
     image: spotify_server
     cap_add:
