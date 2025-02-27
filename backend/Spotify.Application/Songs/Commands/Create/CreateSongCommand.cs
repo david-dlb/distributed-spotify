@@ -5,7 +5,6 @@ using Spotify.Application.Common.Interfaces;
 using Spotify.Application.Common.Interfaces.Services;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
-using Spotify.Domain.ValueObjects;
 
 namespace Spotify.Application.Songs.Commands.Create
 {

@@ -20,12 +20,12 @@ namespace Spotify.WebAPI.Controllers
             return Ok(await _chordService.FindSuccessorAsync(id));
         }
 
-        [HttpPost("store/{key}")]
-        public async Task<IActionResult> Store(string key, [FromBody] string value)
-        {
-            var response = await _chordService.StoreDataAsync(key, value);
-            return Ok(response);
-        }
+        // [HttpPost("store/{key}")]
+        // public async Task<IActionResult> Store(string key, [FromBody] string value)
+        // {
+        //     var response = await _chordService.StoreDataAsync(key, value);
+        //     return Ok(response);
+        // }
 
         [HttpGet("data/{key}")]
         public async Task<IActionResult> Get(string key)

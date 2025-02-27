@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using Spotify.Api.Controllers.Common;
 using Spotify.Application.Common.Models;
+using Spotify.Application.Models;
 using Spotify.Application.Songs.Commands.Create;
 using Spotify.Application.Songs.Commands.Delete;
 using Spotify.Application.Songs.Commands.Update;
@@ -13,14 +14,17 @@ using Spotify.Application.Songs.Queries.GetChunkIndexed;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
 using Spotify.Domain.ValueObjects;
+using Spotify.Infrastructure.Services.Chord;
 
 namespace Spotify.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class SongController(IMediator mediator) : SpotifyControllerBase
+    public class SongController(IMediator mediator, IChordManagerService chordManagerService) : SpotifyControllerBase
     {
         private readonly IMediator _mediator = mediator;
+
+        private readonly IChordManagerService _chordManagerService = chordManagerService;
 
         [HttpGet]
         public async Task<CommonResponse<List<SongDto>>> GetAll(
@@ -60,21 +64,39 @@ namespace Spotify.Api.Controllers
             if (songFile == null || songFile.Length == 0)
                 return Fail<SongDto>("There is not any file.");
 
-            var songsResult = await _mediator.Send(new CreateSongCommand(){
-                Id = input.Id,
-                AlbumId = input.AlbumId,
-                AuthorId = input.AuthorId,
-                Genre = input.Genre,
-                Name = input.Name ?? songFile.FileName,
-                Stream = songFile.OpenReadStream()
-            }, default);
-            
-            if (songsResult.IsError)
-            {
-                Log.Error("Error trying to create a song.");
-                return Fail<SongDto>("Error creating the song."); 
-            }
-            return Ok(songsResult.Value.ToDto());
+            // var songsResult = await _mediator.Send(new CreateSongCommand(){
+            //     Id = input.Id,
+            //     AlbumId = input.AlbumId,
+            //     AuthorId = input.AuthorId,
+            //     Genre = input.Genre,
+            //     Name = input.Name ?? songFile.FileName,
+            //     Stream = songFile.OpenReadStream()
+            // }, default);
+            using var stream = songFile.OpenReadStream();
+
+            var songDto = await _chordManagerService.StoreDataAsync(
+                (input.Id ?? Guid.NewGuid()).ToString(),
+                new CreateSongData()
+                {
+                    Model = input,
+                    SongFileStream = stream
+                }
+            );
+
+            Log.Information($"Returning: {songDto.Id}"); 
+            Log.Information($"Returning: {songDto.Name}"); 
+            Log.Information($"Returning: {songDto.Genre.ToString()}"); 
+            return Ok(songDto);
+            // var songsResult = songDto.result; 
+
+            // if (songsResult.IsError)
+            // {
+            //     Log.Error("Error trying to create a song.");
+            //     return Fail<SongDto>("Error creating the song."); 
+            // }
+            // var song = songsResult.Value; 
+
+            // return Ok(song.ToDto());
         }
         
         [HttpGet("download")]

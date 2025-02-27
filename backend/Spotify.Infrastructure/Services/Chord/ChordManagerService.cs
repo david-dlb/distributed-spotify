@@ -4,18 +4,26 @@ using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using ErrorOr;
+using MediatR;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Spotify.Application.Models;
+using Spotify.Application.Songs.Commands.Create;
+using Spotify.Domain.Entities;
+using Spotify.Domain.Enums;
 
 namespace Spotify.Infrastructure.Services.Chord
 {
-    public record StoreDataResponse(string Url, string Key);
+    public record StoreDataResponse(string Url, string Key, ErrorOr<Song> result);
     public record DataCatalog(List<string> Keys);
 
     public class ChordManagerService : IChordManagerService, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
+        private readonly IServiceScopeFactory _serviceScopeProvider;
         private readonly int _m = 16;
         private readonly int broadCastTimeOut = 5000;
         private readonly ChordNode _localNode;
@@ -23,11 +31,11 @@ namespace Spotify.Infrastructure.Services.Chord
         public ChordNode Successor { get; set; }
         public ConcurrentDictionary<string, string> DataStore { get; } = new();
 
-        public ChordManagerService(HttpClient httpClient, IConfiguration configuration)
+        public ChordManagerService(HttpClient httpClient, IConfiguration configuration, IServiceScopeFactory serviceScopeProvider)
         {
             _httpClient = httpClient;
             _configuration = configuration;
-
+            _serviceScopeProvider = serviceScopeProvider;
             var localIp = Dns.GetHostEntry(Dns.GetHostName())
                 .AddressList.First(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                 .ToString();
@@ -44,6 +52,7 @@ namespace Spotify.Infrastructure.Services.Chord
 
         private async Task<bool> CheckIfNodeIsAlive(ChordNode node)
         {
+            // DONE
             try
             {
                 if(node.Id == _localNode.Id)
@@ -63,6 +72,7 @@ namespace Spotify.Infrastructure.Services.Chord
 
         public Task HandleAliveFrom(string newNodeIp)
         {
+            // DONE
             var newNode = new ChordNode(newNodeIp,_m); 
             if(newNode.Id == _localNode.Id)
                 return Task.CompletedTask;
@@ -82,6 +92,7 @@ namespace Spotify.Infrastructure.Services.Chord
 
         public async Task<string> FindSuccessorAsync(int id)
         {
+            // DONE: but may be improved
             if (id.IsIdInInterval(Predecessor.Id, _localNode.Id))
             {
                 return _localNode.Url;
@@ -105,47 +116,99 @@ namespace Spotify.Infrastructure.Services.Chord
             }
         }
 
-        public async Task<StoreDataResponse> StoreDataAsync(string key, string value)
-        {       
-            // Se calcula el hash de la clave para determinar la posición en el anillo
+        public async Task<SongDto> StoreDataAsync(string key, CreateSongData input)
+        {
+            // TODO: 
             int keyHash = key.GenerateIntHash(_m);
+            using var scope = _serviceScopeProvider.CreateScope(); 
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>(); 
 
+            ArgumentNullException.ThrowIfNull(input.SongFileStream); 
+         
             if (keyHash.IsIdInInterval(Predecessor.Id, _localNode.Id))
             {
-                // El nodo local es responsable, se almacena localmente
-                DataStore[key] = value;
-                var responseObj = new StoreDataResponse(_localNode.Url, key);
-                return responseObj;
+                Log.Information("Creating the song locally");
+                var songsResult = await mediator.Send(new CreateSongCommand()
+                {
+                    Id = input.Model.Id,
+                    AlbumId = input.Model.AlbumId,
+                    AuthorId = input.Model.AuthorId,
+                    Genre = input.Model.Genre,
+                    Name = input.Model.Name ?? "UNKNOWN",
+                    Stream = input.SongFileStream
+                }, default);
+
+                var songDto = songsResult.Value; 
+                return songDto.ToDto();
             }
             else
             {
-                // Se busca el nodo responsable y se reenvía la petición
                 var nodeUrl = await FindSuccessorAsync(keyHash);
                 if (nodeUrl == _localNode.Url)
                 {
-                    DataStore[key] = value;
-                    var responseObj = new StoreDataResponse(_localNode.Url, key);
-                    return responseObj;
+                    Log.Information("Creating the song locally");
+                    var songsResult = await mediator.Send(new CreateSongCommand()
+                    {
+                        Id = input.Model.Id,
+                        AlbumId = input.Model.AlbumId,
+                        AuthorId = input.Model.AuthorId,
+                        Genre = input.Model.Genre,
+                        Name = input.Model.Name ?? "UNKNOWN",
+                        Stream = input.SongFileStream
+                    }, default);
+
+                    var songDto = songsResult.Value; 
+                    return songDto.ToDto();
                 }
                 else
                 {
-                    var payload = JsonSerializer.Serialize(value);
-                    var content = new StringContent(payload, Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PostAsync($"{nodeUrl}/api/chord/store/{key}", content);
-                    if (response.IsSuccessStatusCode)
+                    using (var memoryStream = new MemoryStream())
                     {
-                        return (await response.Content.ReadFromJsonAsync<StoreDataResponse>())!;
+                        await input.SongFileStream.CopyToAsync(memoryStream);
+                        memoryStream.Position = 0;
+                        
+                        Log.Information("Creating the song remotely at {url}", nodeUrl);
+                        
+                        var formData = new MultipartFormDataContent
+                        {
+                            { new StringContent(input.Model.Id.ToString()), "Id" },
+                            { new StringContent(input.Model.AlbumId?.ToString() ?? ""), "AlbumId" },
+                            { new StringContent(input.Model.AuthorId?.ToString() ?? ""), "AuthorId" },
+                            { new StringContent(((int)(input.Model.Genre ?? MusicGenre.Unknown) ).ToString(), Encoding.UTF8), "Genre" },
+                            { new StringContent(input.Model.Name ?? "UNKNOWN"), "Name" },
+                            { new StreamContent(memoryStream), "songFile", "song.mp3" } 
+                        };
+
+                        var response = await _httpClient.PostAsync($"{nodeUrl}/api/Song", formData);
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var result = await response.Content.ReadFromJsonAsync<CommonResponse<SongDto>>(new System.Text.Json.JsonSerializerOptions(){
+                                IncludeFields = true,
+                                PropertyNameCaseInsensitive = true
+                            });          
+                            if(result!.Success)
+                            {
+                                return result.Value!;
+
+                            }   // RETRY MECHANISM
+                            Log.Error("Error al almacenar la información en el nodo {nodeUrl}. Error: {errorMessage}, Detalles: {errorDetails}", nodeUrl, result.ErrorMessage, result.ErrorDetails);
+                            throw new Exception($"Error al almacenar la información en el nodo {nodeUrl}. Código de estado: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}, {response.RequestMessage}");
+                        }
+                        else
+                        {
+                            throw new Exception($"Error al almacenar la información en el nodo {nodeUrl}. Código de estado: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}, {response.RequestMessage}");
+                        }
                     }
-                    else
-                    {
-                        throw new Exception($"Error al almacenar la información en el nodo {nodeUrl}. Código de estado: {response.StatusCode}");
-                    }
+
+
                 }
             }
         }
 
         public async Task<string?> GetDataAsync(string key)
         {
+            // TODO: 
             int keyHash = key.GenerateIntHash(_m);
 
             if (keyHash.IsIdInInterval(Predecessor.Id, _localNode.Id))
@@ -190,6 +253,7 @@ namespace Spotify.Infrastructure.Services.Chord
 
         public async Task BroadCastIAmAliveAsync()
         {
+            // DONE
             using var udpClient = new UdpClient();
             udpClient.EnableBroadcast = true;
 
@@ -204,12 +268,14 @@ namespace Spotify.Infrastructure.Services.Chord
 
         public void Dispose()
         {
+            // DONE
             Log.Information("Liberando recursos del ChordManagerService para el nodo {LocalUrl}.", _localNode.Url);
             GC.SuppressFinalize(this);
         }
 
         public async Task ForwardDataCatalog()
         {
+            // DONE
             if(Successor.Id == _localNode.Id)
                 return; 
 
@@ -224,6 +290,7 @@ namespace Spotify.Infrastructure.Services.Chord
 
         public async Task ProcessCatalog(DataCatalog catalog, string ip)
         {
+            // TODO:
             ChordNode sourceNode = new ChordNode(ip, _m); 
             foreach (var key in catalog.Keys)
             {
@@ -238,6 +305,7 @@ namespace Spotify.Infrastructure.Services.Chord
 
         public async Task HealthCheck()
         {
+            // DONE
             var successorIsAlive = await CheckIfNodeIsAlive(Successor); 
             var predecessorIsAlive = await CheckIfNodeIsAlive(Predecessor); 
             if(!successorIsAlive)
@@ -253,6 +321,7 @@ namespace Spotify.Infrastructure.Services.Chord
         }
         public async Task RequestDataCatalog()
         {
+            // DONE
             if(Successor.Id == _localNode.Id)
             {
                 await Task.Delay(broadCastTimeOut + 200);
@@ -268,12 +337,14 @@ namespace Spotify.Infrastructure.Services.Chord
 
         public Task<DataCatalog> GetLocalCatalog()
         {
+            // TODO: 
             DataCatalog catalog = new([.. DataStore.Keys]); 
             return Task.FromResult(catalog);
         }
 
         public Task<string?> GetLocalDataAsync(string key)
         {
+            // TODO: 
             if(DataStore.TryGetValue(key, out var value))
             {
                 return Task.FromResult<string?>(value); 

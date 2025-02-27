@@ -1,11 +1,19 @@
+using Spotify.Application.Common.Models;
+
 namespace Spotify.Infrastructure.Services.Chord
 {
+    public class CreateSongData
+    {
+        public required Stream SongFileStream { get; init; } 
+        public required CreateSongModel Model { get; init; } 
+    }
+
     public interface IChordManagerService
     {
         Task BroadCastIAmAliveAsync();
         Task HandleAliveFrom(string node);         
         Task<string> FindSuccessorAsync(int id);
-        Task<StoreDataResponse> StoreDataAsync(string key, string value);
+        Task<SongDto> StoreDataAsync(string key, CreateSongData value);
         Task<string?> GetDataAsync(string key);
         Task<string?> GetLocalDataAsync(string key);
         Task ForwardDataCatalog(); 

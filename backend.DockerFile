@@ -4,7 +4,7 @@ WORKDIR /
 
 COPY ./backend ./app 
 
-RUN apt-get update && apt-get install -y iproute2
+RUN apt-get update && apt-get install -y iproute2 sqlite3
 
 RUN chmod +x /app/startup.sh
 
