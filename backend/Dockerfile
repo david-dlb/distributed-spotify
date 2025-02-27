@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0.100-1 AS build-and-run
 
 WORKDIR /app
 
-COPY /app
+COPY . .
 
 RUN apt-get update && apt-get install -y iproute2 python3
 

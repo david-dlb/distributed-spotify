@@ -1,4 +1,5 @@
 import { handleErrorWithSweetAlert } from "./alert";
+import archivoTexto from '../../server/ip.txt';
 
 export async function requestToServer(method, url, data, onSuccess, onError) {
   try {
@@ -8,7 +9,6 @@ export async function requestToServer(method, url, data, onSuccess, onError) {
         'Content-Type': 'application/json'
       }
     };
-    
     // Solo añadir el cuerpo si hay datos (y si no es GET)
     if (data && (method !== 'GET' || method != "DELETE")) {
       options.body = JSON.stringify(data);
@@ -73,6 +73,19 @@ export async function requestToServerForm(method, url, data, onSuccess, onError)
 }
 
 
+const read = async () => {
+  const filePath = '../../server/ip.txt';
+  fetch(filePath)
+  .then(response => response.text())
+  .then(data => {
+    const ipAddress = data.trim(); // Elimina espacios en blanco y extrae la IP
+    console.log('IP de la máquina:', ipAddress);
+
+  })
+  .catch(error => {
+    console.error('Error al leer el archivo:', error);
+  });
+}
 
 export async function request(method, url, data, onSuccess, onError) {
   try {
@@ -83,13 +96,16 @@ export async function request(method, url, data, onSuccess, onError) {
         'accept': 'text/plain',
       },
     };
+    console.log("hola")
+    const ip = await read()
+    console.log("adios")
 
     if (data && (method !== 'GET' || method != "DELETE")) {
       options.body = JSON.stringify(data);
     }
     const urlF = window.env.URL + url 
     // Hacer la solicitud con fetch
-    const response = await fetch("http://10.0.10.2:8000/api" + url, options);
+    const response = await fetch(ip + ":8000/api" + url, options);
     
       // Comprobar si la respuesta fue exitosa
     console.log(response)
@@ -103,7 +119,7 @@ export async function request(method, url, data, onSuccess, onError) {
     }
     
     // Llamar a la función de éxito pasando el resultado
-    onSuccess(result);
+    onSuccess([]);
   } catch (error) {
     // Llamar a la función de error pasando el mensaje de error
     onError(error.message);
