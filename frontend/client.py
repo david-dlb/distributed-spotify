@@ -4,7 +4,7 @@ import socket
 def write_simple(value):
     try: 
 
-        with open("server/url", 'w') as file:
+        with open("server/url.txt", 'w') as file:
             file.write(value)
         return value
     
@@ -72,7 +72,7 @@ while True:
         response, server_addr = sock_recv.recvfrom(1024)
         print(f"Respuesta del servidor {server_addr}: {response.decode()}")
         # write('public/config.js', server_addr)
-        write_simple("http://" + server_addr[0])
+        write_simple("http://" + server_addr[0] + ":6002")
     except socket.timeout:
         print("No se recibió respuesta del servidor.")
 
