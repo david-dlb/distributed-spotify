@@ -31,7 +31,7 @@ app.all('*', async (req, res) => {
     const options = {
       method: req.method
     };
-    if (req.body) {
+    if (req.headers) {
       options.headers = req.headers
     }
     if (req.body) {
@@ -44,8 +44,8 @@ app.all('*', async (req, res) => {
     res.json(r)
   } catch (error) {
     console.log(error)
+    res.status(500).json({ message: "Fallo en la peticion al server"});
   }
-  res.json([{ id: 1, name: 'John Doe' }]);
 });
 
 // Escuchar en el puerto especificado

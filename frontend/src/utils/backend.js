@@ -15,13 +15,11 @@ export class BackendService {
       })
     }
     async getSongAudio(params, onSuccess, onError) {
-      const response = await fetch(`${window.env.URL}/Song/download/indexed${params}`);
-      if (!response.ok) {
-        onError('Error al obtener el segmento de audio')
-        throw new Error('Error al obtener el segmento de audio');
-      }
-      const d = await response.arrayBuffer()
-      onSuccess(d)
+      request("GET", `/Song/download/indexed${params}`, null, (d) => {
+        return onSuccess(d)
+      }, (e) => {
+        return onError(e)
+      })
     }
     async deleteSongs(params, onSuccess, onError) {
       requestToServer("DELETE", `/Song${params}`, null, (d) => {
