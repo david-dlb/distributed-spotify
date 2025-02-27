@@ -47,7 +47,7 @@ export class BackendService {
     }
 
     async getAlbums(params, onSuccess, onError) {
-      sequentialRequest("GET", `/Album${params}`, null, (d) => {
+      request("GET", `/Album${params}`, null, (d) => {
         return onSuccess(d)
       }, (e) => {
         return onError(e)

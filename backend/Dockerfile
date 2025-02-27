@@ -4,11 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN apt-get update && apt-get install -y iproute2
-
-ENV ASPNETCORE_ENVIRONMENT=Development
-ENV ASPNETCORE_URLS=http://*:6000
-
+RUN apt-get update && apt-get install -y iproute2 sqlite3 python3
 
 COPY startup.sh /usr/local/bin/startup.sh
 
