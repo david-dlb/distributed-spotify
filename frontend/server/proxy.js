@@ -26,27 +26,58 @@ app.use('/', (req, res, next) => {
   });
   
   // Manejo de diferentes métodos
-app.all('*', async (req, res) => {
-  try {
-    const options = {
-      method: req.method
-    };
-    if (req.headers) {
-      options.headers = req.headers
-    }
-    if (req.body) {
-      options.body = req.body
-    }
+  async function handleRequest(req, res) {
+    let successResponse;
     
-    const url = await read("./url.txt")
-    const a = await fetch(url + req.url, options)
-    const r = await a.json()
-    res.json(r)
-  } catch (error) {
-    console.log(error)
-    res.status(500).json({ message: "Fallo en la peticion al server"});
+    const maxRetries = 3; // Número máximo de intentos
+    let retries = 0;
+  
+    while (retries < maxRetries) {
+      try {
+        const options = {
+          method: req.method,
+          headers: req.headers,
+          body: req.body
+        };
+  
+        const url = await read("./url.txt");
+        const response = await fetch(url + req.url, options);
+  
+        if (!response.ok) {
+          throw new Error(`Respuesta no OK: ${response.status}`);
+        }
+  
+        successResponse = await response.json();
+        break;
+      } catch (error) {
+        retries++;
+        console.log(`Intento ${retries}: Error ocurrió, reintentando...`);
+        
+        if (retries === maxRetries) {
+          throw error; // Lanza el error después del número máximo de intentos
+        }
+        
+        // Espera un poco antes del próximo intento para evitar sobrecarga del servidor
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+  
+    if (successResponse) {
+      res.json(successResponse);
+    } else {
+      throw new Error("No se logró obtener respuesta exitosa después de múltiples intentos");
+    }
   }
-});
+  
+  // Uso en tu función principal
+  app.all('*', async (req, res) => {
+    try {
+      await handleRequest(req, res);
+    } catch (error) {
+      console.error('Error final:', error);
+      res.status(500).json({ message: "Fallo en la peticion al server", details: error.message });
+    }
+  });
 
 // Escuchar en el puerto especificado
 app.listen(PORT, () => {
