@@ -17,10 +17,13 @@ const read = async (file) => {
   return d
 }
 
-app.use(fileUpload({
-    useTempFiles: true,
-    tempFileDir: "/temp/"
-}))
+// app.use(fileUpload({
+//     useTempFiles: true,
+//     tempFileDir: "/temp/"
+// }))
+
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" }); // Archivos se guardan en carpeta "uploads"
 
 // Configurar el puerto del servidor
 const PORT = 8000;
@@ -34,7 +37,7 @@ app.use('/', (req, res, next) => {
   // Manejo de diferentes métodos
   async function handleRequest(req, res) {
     let successResponse;
-    // console.log(req.files.songFile, req.body)
+    // console.log(req.files, req.body)
     
     const maxRetries = 1; // Número máximo de intentos
     let retries = 0; 
@@ -45,36 +48,57 @@ app.use('/', (req, res, next) => {
           headers: req.headers,
           body: req.body
         };
-        console.log(req.url, req.url.startsWith("/api/Song"))
         if (req.url.startsWith("/api/Song") && (req.method == "POST" || req.method == "PUT")) {
-          if (!req.files || !req.files['songFile']) {
-            console.error('songFile not found in req.files');
-            // Maneja este caso, por ejemplo, retornando una respuesta de error
-            return res.status(400).json({ error: 'Song file not uploaded' });
-          }
-          const data = new FormData()
-          const file = req.files["songFile"]
-          data.append('songFile',  file.data, {
-            filename: file.name,          
-            contentType: file.mimetype      
-          });
-          data.append('AlbumId', req.body.AlbumId);
-          data.append('AuthorId', req.body.AuthorId);
-          data.append('Genre', req.body.Genre);
-          data.append('Name', req.body.Name);
+          
+          // const data = new FormData()
+          // const file = req.files["songFile"]
+          // const emptyBlob = new Blob([], { type: 'application/octet-stream' });
+
+          // data.append('songFile', emptyBlob, 'empty_file.txt');
+          // data.append('AlbumId', req.body.AlbumId);
+          // data.append('AuthorId', req.body.AuthorId);
+          // data.append('Genre', req.body.Genre);
+          // data.append('Name', req.body.Name);
 
 
-          options.body = data
-          console.log(options)
+          // options.body = data
+          // console.log(options)
         }
-        const url = await read("./url.txt");if (req.url.startsWith("/api/Song") && (req.method == "POST" || req.method == "PUT")) {
-           
-          console.log(url + req.url, options)
-        } 
-        const response = await fetch(url + req.url, options);
+        let response = null
+        const url = await read("./url.txt");
+        if (req.url.startsWith("/api/Song") && (req.method == "POST" || req.method == "PUT")) {
+          const filePath = req.file.path;
+        
+          // Crear stream desde el archivo guardado
+          const fileStream = fs.createReadStream(filePath);
+          
+          // Preparar formulario para enviar
+          const form = new FormData();
+          form.append("songFile", fileStream);
+          form.append('AlbumId', req.body.AlbumId);
+          form.append('AuthorId', req.body.AuthorId);
+          form.append('Genre', req.body.Genre);
+          form.append('Name', req.body.Name);
+          options.body = form
+          try {
+          response = await fetch(url + req.url, {
+            method: req.method,
+            headers: form.headers,
+            body: form
+          });
+          console.log(response)
+            
+          } catch (error) {
+            console.log("eeror bigg", error)
+          }
+            // console.log(url + req.url, options, response)
+        }else{
+          response = await fetch(url + req.url, options);
+        }
+        
         
         if (!response.ok) {
-          throw new Error(`Respuesta no OK: ${response.status}`);
+          throw new Error(`Respuesta no OK: ${response.status} ${response.statusText}`);
         }
         if (req.url.startsWith("/api/Song/download/indexed")) {
           successResponse = await response.arrayBuffer() 
@@ -106,12 +130,12 @@ app.use('/', (req, res, next) => {
   }
   
   // Uso en tu función principal
-  app.all('*', async (req, res) => {
+  app.all('*', upload.single("songFile"), async (req, res) => {
     try {
       await handleRequest(req, res);
       // console.log("salie")
     } catch (error) {
-      console.error('Error final:', error);
+      // console.error('Error final:', error);
       res.status(500).json({ message: "Fallo en la peticion al server", details: error.message });
     }
   });
