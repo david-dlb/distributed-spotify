@@ -46,7 +46,7 @@ name
       setPage(page - 1);
     }
   }, [songs]);
-console.log(songChunks)
+  
   return (
     <div className="">
       <Navbar />

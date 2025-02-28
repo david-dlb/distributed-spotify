@@ -33,7 +33,7 @@ const Add = ({ setSongs, reload }) => {
     data.append('Genre', formData.Genre);
     data.append('Name', formData.Name);
 
-    backendService.setSong("POST", data, (d) => {
+    backendService.setSong(data, (d) => {
       (d)
       setFormData({
         Name: '',

@@ -72,13 +72,13 @@ while True:
     # Enviar mensaje multicast con IP y puerto del cliente
     message = f"{CLIENT_IP}:{CLIENT_PORT}"  # Enviar IP y puerto
     sock_send.sendto(message.encode(), (MULTICAST_GROUP, MULTICAST_PORT))
-    print(f"Mensaje enviado a {MULTICAST_GROUP}:{MULTICAST_PORT}, esperando respuesta en {CLIENT_IP}:{CLIENT_PORT}")
+    # print(f"Mensaje enviado a {MULTICAST_GROUP}:{MULTICAST_PORT}, esperando respuesta en {CLIENT_IP}:{CLIENT_PORT}")
 
     # Esperar respuesta del servidor
     sock_recv.settimeout(5)  # Esperar hasta 5 segundos
     try:
         response, server_addr = sock_recv.recvfrom(1024)
-        print(f"Respuesta del servidor {server_addr}: {response.decode()}")
+        # print(f"Respuesta del servidor {server_addr}: {response.decode()}")
         # write('public/config.js', server_addr)
         write_simple("server/url.txt", "http://" + server_addr[0] + ":" + read("server/port.txt"))
     except socket.timeout:
