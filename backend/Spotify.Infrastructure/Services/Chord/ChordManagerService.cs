@@ -11,6 +11,7 @@ using Serilog;
 using Spotify.Application.Common.Models;
 using Spotify.Application.Models;
 using Spotify.Application.Songs.Commands.Create;
+using Spotify.Application.Songs.Commands.Update;
 using Spotify.Application.Songs.Queries.GetAll;
 using Spotify.Application.Songs.Queries.GetChunkIndexed;
 using Spotify.Domain.Entities;
@@ -286,7 +287,15 @@ namespace Spotify.Infrastructure.Services.Chord
                         }, 
                         SongFileStream = memoryStream                       
                     });
-                }   
+                } else {
+                    await UpdateLocalDataAsync(new UpdateSongCommand(){
+                        Id = song.Id, 
+                        AlbumId = song.AlbumId, 
+                        AuthorId = song.AuthorId, 
+                        Genre = song.Genre, 
+                        Name = song.Name
+                    });
+                }  
             }
         }
 
@@ -366,6 +375,16 @@ namespace Spotify.Infrastructure.Services.Chord
 
             return songsResult; 
         }
+        private async Task<ErrorOr<Song>> UpdateLocalDataAsync(UpdateSongCommand input)
+        {
+            // DONE but not TESTED
+            using var scope = _serviceScopeProvider.CreateScope(); 
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>(); 
+
+            Log.Information("Creating the song locally");
+            var songsResult = await mediator.Send(input, default);
+            return songsResult; 
+        }
 
         private async Task<ErrorOr<List<Song>>> FindAllSongsAsync()
         {
@@ -378,5 +397,52 @@ namespace Spotify.Infrastructure.Services.Chord
             );
             return result; 
         }
+
+        public async Task<ErrorOr<Song>> UpdateDataAsync(UpdateSongCommand update)
+        {
+            // DONE 
+            int keyHash = update.Id.ToString().GenerateIntHash(_m);
+         
+            if (keyHash.IsIdInInterval(Predecessor.Id, _localNode.Id))
+            {
+                var result = await UpdateLocalDataAsync(update);
+                return result; 
+            }
+            else
+            {
+                var nodeUrl = await FindSuccessorAsync(keyHash);
+                if (nodeUrl == _localNode.Url)
+                {
+                    var result = await UpdateLocalDataAsync(update);
+                    return result; 
+                }
+                else
+                {
+                    Log.Information("Updating the song remotely at {url}", nodeUrl);
+                    var response = await _httpClient.PutAsJsonAsync($"{nodeUrl}/api/Song", update);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadFromJsonAsync<CommonResponse<Song>>(new System.Text.Json.JsonSerializerOptions(){
+                            IncludeFields = true,
+                            PropertyNameCaseInsensitive = true
+                        });          
+                        if(result!.Success)
+                        {
+                            return result.Value!;
+
+                        }   // RETRY MECHANISM
+                        Log.Error("Error al almacenar la información en el nodo {nodeUrl}. Error: {errorMessage}, Detalles: {errorDetails}", nodeUrl, result.ErrorMessage, result.ErrorDetails);
+                        throw new Exception($"Error al almacenar la información en el nodo {nodeUrl}. Código de estado: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}, {response.RequestMessage}");
+                    }
+                    else
+                    {
+                        throw new Exception($"Error al almacenar la información en el nodo {nodeUrl}. Código de estado: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}, {response.RequestMessage}");
+                    }
+
+                }
+            }
+        }
+
     }
 }

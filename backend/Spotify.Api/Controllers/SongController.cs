@@ -5,16 +5,12 @@ using Serilog;
 using Spotify.Api.Controllers.Common;
 using Spotify.Application.Common.Models;
 using Spotify.Application.Models;
-using Spotify.Application.Songs.Commands.Create;
 using Spotify.Application.Songs.Commands.Delete;
 using Spotify.Application.Songs.Commands.Update;
 using Spotify.Application.Songs.Queries.GetAll;
-using Spotify.Application.Songs.Queries.GetChunk;
-using Spotify.Application.Songs.Queries.GetChunkIndexed;
 using Spotify.Application.Songs.Queries.GetFull;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
-using Spotify.Domain.ValueObjects;
 using Spotify.Infrastructure.Services.Chord;
 
 namespace Spotify.Api.Controllers
@@ -83,7 +79,7 @@ namespace Spotify.Api.Controllers
         [HttpGet("download/indexed")]
         public async Task<IActionResult> DownloadSongChunkIndexed([FromQuery] Guid songId, [FromQuery] int index)
         {
-
+            // DONE
             Log.Information("[DOWNLOAD] Song endpoint called.");
             var result = await _chordManagerService.GetDataAsync(songId.ToString(), index);
 
@@ -112,9 +108,9 @@ namespace Spotify.Api.Controllers
         [HttpPut]
         public async Task<CommonResponse<Song>> Update(UpdateSongCommand input)
         {
-            // TODO:
+            // DONE
             Log.Information("[UPDATE] Song endpoint called.");
-            var songsResult = await _mediator.Send(input, default);
+            var songsResult = await _chordManagerService.UpdateDataAsync(input);
             if (songsResult.IsError)
             {
                 Log.Error("Error trying to update a song.");
@@ -126,7 +122,7 @@ namespace Spotify.Api.Controllers
         [HttpDelete]
         public async Task<CommonResponse<Success>> Delete([FromQuery] Guid songId)
         {
-            // TODO:
+            // DELETE
             Log.Information("[DELETE] Song endpoint called.");
             var songsResult = await _mediator.Send(new DeleteSongCommand(){
                     Id = songId
