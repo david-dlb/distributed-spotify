@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Spotify.Application.Models;
 using Spotify.Application.Songs.Commands.Create;
+using Spotify.Application.Songs.Queries.GetChunkIndexed;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
 
@@ -118,7 +119,6 @@ namespace Spotify.Infrastructure.Services.Chord
 
         public async Task<SongDto> StoreDataAsync(string key, CreateSongData input)
         {
-            // TODO: 
             int keyHash = key.GenerateIntHash(_m);
             using var scope = _serviceScopeProvider.CreateScope(); 
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>(); 
@@ -206,46 +206,35 @@ namespace Spotify.Infrastructure.Services.Chord
             }
         }
 
-        public async Task<string?> GetDataAsync(string key)
+        public async Task<ErrorOr<byte[]>> GetDataAsync(string SongIdKey, int index)
         {
-            // TODO: 
-            int keyHash = key.GenerateIntHash(_m);
+            int keyHash = SongIdKey.GenerateIntHash(_m);
 
             if (keyHash.IsIdInInterval(Predecessor.Id, _localNode.Id))
             {
-                if (DataStore.TryGetValue(key, out var value))
-                {
-                    return value;
-                }
-                else
-                {
-                    return null; 
-                }
+                return await GetLocalDataAsync(SongIdKey, index);
             }
             else
             {
                 var nodeUrl = await FindSuccessorAsync(keyHash);
                 if (nodeUrl == _localNode.Url)
                 {
-                    if (DataStore.TryGetValue(key, out var value))
-                    {
-                        return value;
-                    }
-                    else
-                    {
-                        return null; 
-                    }
+                    return await GetLocalDataAsync(SongIdKey, index);
                 }
                 else
                 {
                     try
                     {
-                        return await _httpClient.GetStringAsync($"{nodeUrl}/api/chord/data/{key}");
+                        Log.Information("Reading the song remotely from {url}", nodeUrl);
+                        var data = await _httpClient.GetStreamAsync($"{nodeUrl}/api/Song/download/indexed?songId={SongIdKey}&index={index}");
+                        using var memoryStream = new MemoryStream();
+                        await data.CopyToAsync(memoryStream);
+                        return memoryStream.ToArray(); 
                     }
                     catch (Exception ex)
                     {
-                        Log.Error("Error al recuperar la clave {Key} desde el nodo {NodeUrl}. Excepción: {Exception}", key, nodeUrl, ex);
-                        throw;
+                        Log.Error("Error al recuperar la clave {Key} desde el nodo {NodeUrl}. Excepción: {Exception}", SongIdKey, nodeUrl, ex);
+                        return Error.Unexpected(description: ex.Message); 
                     }
                 }
             }
@@ -296,9 +285,10 @@ namespace Spotify.Infrastructure.Services.Chord
             {
                 if(!DataStore.ContainsKey(key))
                 {
-                    Log.Information("Replication data with key: {K}", key); 
-                    string data = await _httpClient.GetStringAsync($"{sourceNode.Url}/api/chord/data/local/{key}");
-                    DataStore.TryAdd(key,data); 
+                    // TODO:
+                    // Log.Information("Replication data with key: {K}", key); 
+                    // string data = await _httpClient.GetStringAsync($"{sourceNode.Url}/api/chord/data/local/{key}");
+                    // DataStore.TryAdd(key,data); 
                 }   
             }
         }
@@ -342,14 +332,16 @@ namespace Spotify.Infrastructure.Services.Chord
             return Task.FromResult(catalog);
         }
 
-        public Task<string?> GetLocalDataAsync(string key)
+        public async Task<ErrorOr<byte[]>> GetLocalDataAsync(string SongIdKey, int index)
         {
-            // TODO: 
-            if(DataStore.TryGetValue(key, out var value))
-            {
-                return Task.FromResult<string?>(value); 
-            }
-            return Task.FromResult<string?>(null);
+            using var scope = _serviceScopeProvider.CreateScope(); 
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>(); 
+
+            var result = await mediator.Send(
+                new GetChunkIndexedSongQuery(new Guid(SongIdKey), index),
+                default
+            );
+            return result; 
         }
     }
 }

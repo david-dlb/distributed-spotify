@@ -37,6 +37,7 @@ namespace Spotify.Api.Controllers
             [FromQuery] Guid? id
         )
         {
+            // TODO: 
             Log.Information("[GET ALL] Songs endpoint called.");
             var songsResult = await _mediator.Send(
                 new GetAllSongQuery(
@@ -60,18 +61,11 @@ namespace Spotify.Api.Controllers
         [HttpPost]
         public async Task<CommonResponse<SongDto>> Create(IFormFile songFile, [FromForm] CreateSongModel input)
         {
+            // DONE
             Log.Information("[CREATE] Song endpoint called.");
             if (songFile == null || songFile.Length == 0)
                 return Fail<SongDto>("There is not any file.");
 
-            // var songsResult = await _mediator.Send(new CreateSongCommand(){
-            //     Id = input.Id,
-            //     AlbumId = input.AlbumId,
-            //     AuthorId = input.AuthorId,
-            //     Genre = input.Genre,
-            //     Name = input.Name ?? songFile.FileName,
-            //     Stream = songFile.OpenReadStream()
-            // }, default);
             using var stream = songFile.OpenReadStream();
 
             var songDto = await _chordManagerService.StoreDataAsync(
@@ -82,31 +76,16 @@ namespace Spotify.Api.Controllers
                     SongFileStream = stream
                 }
             );
-
-            Log.Information($"Returning: {songDto.Id}"); 
-            Log.Information($"Returning: {songDto.Name}"); 
-            Log.Information($"Returning: {songDto.Genre.ToString()}"); 
             return Ok(songDto);
-            // var songsResult = songDto.result; 
-
-            // if (songsResult.IsError)
-            // {
-            //     Log.Error("Error trying to create a song.");
-            //     return Fail<SongDto>("Error creating the song."); 
-            // }
-            // var song = songsResult.Value; 
-
-            // return Ok(song.ToDto());
         }
-        
-        [HttpGet("download")]
-        public async Task<IActionResult> DownloadSongChunk([FromQuery] Guid songId, [FromQuery] long start, [FromQuery] long end)
+
+        [HttpGet("download/indexed")]
+        public async Task<IActionResult> DownloadSongChunkIndexed([FromQuery] Guid songId, [FromQuery] int index)
         {
+
             Log.Information("[DOWNLOAD] Song endpoint called.");
-            var result = await _mediator.Send(
-                new GetChunkSongQuery(songId, new ChunkRange(start,end)),
-                default
-            );
+            var result = await _chordManagerService.GetDataAsync(songId.ToString(), index);
+
             if (result.IsError){
                 Log.Error("Error trying to download the file song.");
                 return Problem();
@@ -114,10 +93,10 @@ namespace Spotify.Api.Controllers
             return File(result.Value, "application/octet-stream", enableRangeProcessing: true);
         }
 
-        [HttpGet("download/indexed")]
-        public async Task<IActionResult> DownloadSongChunkIndexed([FromQuery] Guid songId, [FromQuery] int index)
+        [HttpGet("local/download/indexed")]
+        public async Task<IActionResult> DownloadLocalSongChunkIndexed([FromQuery] Guid songId, [FromQuery] int index)
         {
-            Log.Information("[DOWNLOAD] Song endpoint called.");
+            Log.Information("[DOWNLOAD LOCAL] Song endpoint called.");
             var result = await _mediator.Send(
                 new GetChunkIndexedSongQuery(songId, index),
                 default
@@ -132,6 +111,7 @@ namespace Spotify.Api.Controllers
         [HttpPut]
         public async Task<CommonResponse<Song>> Update(UpdateSongCommand input)
         {
+            // TODO:
             Log.Information("[UPDATE] Song endpoint called.");
             var songsResult = await _mediator.Send(input, default);
             if (songsResult.IsError)
@@ -145,6 +125,7 @@ namespace Spotify.Api.Controllers
         [HttpDelete]
         public async Task<CommonResponse<Success>> Delete([FromQuery] Guid songId)
         {
+            // TODO:
             Log.Information("[DELETE] Song endpoint called.");
             var songsResult = await _mediator.Send(new DeleteSongCommand(){
                     Id = songId

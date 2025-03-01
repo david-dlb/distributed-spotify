@@ -27,19 +27,13 @@ namespace Spotify.WebAPI.Controllers
         //     return Ok(response);
         // }
 
-        [HttpGet("data/{key}")]
-        public async Task<IActionResult> Get(string key)
-        {
-            var value = await _chordService.GetDataAsync(key);
-            return Ok(value);
-        }
+        // [HttpGet("data/{key}")]
+        // public async Task<IActionResult> Get(string key)
+        // {
+        //     var value = await _chordService.GetDataAsync(key);
+        //     return Ok(value);
+        // }
 
-        [HttpGet("data/local/{key}")]
-        public async Task<IActionResult> GetLocal(string key)
-        {
-            var value = await _chordService.GetLocalDataAsync(key);
-            return Ok(value);
-        }
 
         [HttpGet("alive")]
         public async Task<IActionResult> IsAlive()

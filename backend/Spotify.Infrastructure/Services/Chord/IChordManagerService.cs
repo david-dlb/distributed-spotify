@@ -1,3 +1,4 @@
+using ErrorOr;
 using Spotify.Application.Common.Models;
 
 namespace Spotify.Infrastructure.Services.Chord
@@ -14,8 +15,8 @@ namespace Spotify.Infrastructure.Services.Chord
         Task HandleAliveFrom(string node);         
         Task<string> FindSuccessorAsync(int id);
         Task<SongDto> StoreDataAsync(string key, CreateSongData value);
-        Task<string?> GetDataAsync(string key);
-        Task<string?> GetLocalDataAsync(string key);
+        Task<ErrorOr<byte[]>> GetDataAsync(string SongIdKey, int index);
+        Task<ErrorOr<byte[]>> GetLocalDataAsync(string SongIdKey, int index);
         Task ForwardDataCatalog(); 
         Task HealthCheck();
         Task<DataCatalog> GetLocalCatalog();

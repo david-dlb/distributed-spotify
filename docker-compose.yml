@@ -47,8 +47,8 @@ services:
       - 6001
     networks:
       - servers
-    # volumes:
-    #   - ./backend:/app  
+    volumes:
+      - ./backend:/app  
 
   spotify_server_2:
     environment:
@@ -69,8 +69,8 @@ services:
       - 6001
     networks:
       - servers
-    # volumes:
-    #   - ./backend:/app  
+    volumes:
+      - ./backend:/app  
 
   spotify_server_3:
     environment:
@@ -91,8 +91,8 @@ services:
       - 6001
     networks:
       - servers
-    # volumes:
-    #   - ./backend:/app  
+    volumes:
+      - ./backend:/app  
 
 
 networks:
