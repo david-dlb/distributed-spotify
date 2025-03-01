@@ -63,7 +63,7 @@ export class BackendService {
     }
 
     async getAlbums(params, onSuccess, onError) {
-      request("GET", `/Album${params}`, null, (d) => {
+      await request("GET", `/Album${params}`, null, (d) => {
         return onSuccess(d)
       }, (e) => {
         return onError(e)
@@ -92,7 +92,7 @@ export class BackendService {
     }
   
     async getAuthors(params, onSuccess, onError) {
-      request("GET", `/Author${params}`, null, (d) => {
+      await request("GET", `/Author${params}`, null, (d) => {
         return onSuccess(d)
       }, (e) => {
         return onError(e)

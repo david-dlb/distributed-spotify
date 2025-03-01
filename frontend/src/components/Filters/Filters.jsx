@@ -99,7 +99,7 @@ const Filters = ({ setSongs, page, reload }) => {
                         console.error(e);
                         return null;
                     });  
-                }
+                } 
                 songs.push({
                     ...ele,
                     "author": y[1],

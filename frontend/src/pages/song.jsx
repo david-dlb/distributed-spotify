@@ -46,6 +46,7 @@ name
       setPage(page - 1);
     }
   }, [songs]);
+  console.log(songs)
   
   return (
     <div className="">
@@ -94,7 +95,7 @@ name
                   </td>
                   <td>{ele.name}</td>
                   <td>{ele.author ? ele.author.name : <></>}</td>
-                  <td>{ele.genre ? ele.genre.name : <></>}</td>
+                  <td>{ele.genre ? ele.genre : <></>}</td>
                   <td>{ele.album ? ele.album.name : <></>}</td>
                   <td
                     className="cursor"
