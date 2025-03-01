@@ -5,7 +5,7 @@ const path = require('path');
 const fileUpload = require("express-fileupload")
 const FormData = require('form-data');  
 const { Readable } = require("stream");
-
+const { Buffer } = require('buffer');
 const read = async (file) => {
   const filePath = path.join(__dirname, 'url.txt');
   let d = ""
@@ -58,7 +58,8 @@ app.use('/', (req, res, next) => {
     
     const maxRetries = 1; // Número máximo de intentos
     let retries = 0; 
-   
+    while(retries < maxRetries) {
+      retries ++
       try {
         const options = {
           method: req.method,
@@ -68,28 +69,35 @@ app.use('/', (req, res, next) => {
         let response = null
         const url = await read("./url.txt");
 
-        // hay dos tipos de peticion una que mandas un json y otra que mandas un FormData
+        // hay dos tipos de peticion una que mandas un json y otra que mandas un FormData para cuando crear canciones
         if (req.url.startsWith("/api/Song") && (req.method == "POST" || req.method == "PUT")) {
           const filePath = req.file.path;
         
-          // Crear stream desde el archivo guardado
-          const fileStream = fs.createReadStream(filePath);
-          
-          // Preparar formulario para enviar
-          const form = new FormData();
-          form.append("songFile", fileStream);
+          if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ error: 'Archivo no encontrado' });
+          }
+
+ 
+      
+          // Leer el archivo
+          const fileBuffer = fs.readFileSync(filePath);
+
+          form.append('songFile', fileBuffer);
           form.append('AlbumId', req.body.AlbumId);
           form.append('AuthorId', req.body.AuthorId);
           form.append('Genre', req.body.Genre);
           form.append('Name', req.body.Name);
-          options.body = form
           try {
-          response = await fetch(url + req.url, {
-            method: req.method,
-            headers: form.headers,
-            body: form
-          });
-          console.log(response)
+            console.log(url + req.url)
+            response = await fetch(url + req.url, {
+              method: req.method,
+              headers: form.getHeaders(),
+              // headers: {
+              //   // 'accept': 'text/plain',
+              // },
+              body: form,
+            });
+            console.log("song", response)
             
           } catch (error) {
             console.log("eeror bigg", error)
@@ -101,6 +109,7 @@ app.use('/', (req, res, next) => {
         
         
         if (!response.ok) {
+          console.log("no ok", response)
           throw new Error(`Respuesta no OK: ${response.status} ${response.statusText}`);
         }
 
@@ -124,8 +133,10 @@ app.use('/', (req, res, next) => {
         // Espera un poco antes del próximo intento para evitar sobrecarga del servidor
         await new Promise(resolve => setTimeout(resolve, 2000));
       } 
-  
+    }
     if (successResponse) {
+
+      // devuelve la respuesta dependiendo de que tipo sea
       if (req.url.startsWith("/api/Song/download/indexed")) {
         res.setHeader('Content-Type', 'application/octet-stream');
         res.send(Buffer.from(successResponse));
