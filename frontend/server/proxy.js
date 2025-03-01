@@ -81,7 +81,7 @@ app.use('/', (req, res, next) => {
       
           // Leer el archivo
           const fileBuffer = fs.readFileSync(filePath);
-
+          const form = new FormData()
           form.append('songFile', fileBuffer);
           form.append('AlbumId', req.body.AlbumId);
           form.append('AuthorId', req.body.AuthorId);
