@@ -56,6 +56,7 @@ namespace Spotify.Api.Controllers
         [HttpPost]
         public async Task<CommonResponse<SongDto>> Create(IFormFile songFile, [FromForm] CreateSongModel input)
         {
+            
             Log.Information("[CREATE] Song endpoint called.");
             if (songFile == null || songFile.Length == 0)
                 return Fail<SongDto>("There is not any file.");

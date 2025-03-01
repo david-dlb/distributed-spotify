@@ -105,7 +105,7 @@ export async function request(method, url, data, onSuccess, onError) {
     if (method == "POST" || method == "PUT") {
       console.log("hola", data.get("Name"))
     }
-    if (data && (method !== 'GET' || method != "DELETE")) {
+    if (data && (method !== 'GET' && method != "DELETE")) {
       console.log("hola", url)
       // options.body = JSON.stringify(data);
       options.body = data;
@@ -114,6 +114,7 @@ export async function request(method, url, data, onSuccess, onError) {
     const ip = await read() 
     let result = null
     if (url.startsWith("/Song/download/indexed")) {
+      
       const response = await fetch(ip + ":8000/api" + url, options) 
       if (!response.ok) {
         onError('Error al obtener el segmento de audio')
@@ -122,7 +123,7 @@ export async function request(method, url, data, onSuccess, onError) {
       const d = await response.arrayBuffer()
       onSuccess(d)
       return d
-    } else { 
+    } else { console.log(options)
       const response = await fetch(ip + ":8000/api" + url, options) 
       result = await response.json()
       if (!response.ok) {

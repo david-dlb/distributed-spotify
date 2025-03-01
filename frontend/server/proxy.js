@@ -55,24 +55,32 @@ app.use('/', (req, res, next) => {
   async function handleRequest(req, res) {
     let successResponse;
     // console.log(req.files, req.body)
-    
+    if (req.method == "OPTIONS") {
+      req.method = "DELETE"
+    }
     const maxRetries = 1; // Número máximo de intentos
     let retries = 0; 
     while(retries < maxRetries) {
       retries ++
       try {
+    console.log(req.url, req.method)
         const options = {
           method: req.method,
-          headers: req.headers,
-          body: req.body
+          headers: req.headers, 
         }; 
+        if (req.body && (req.method !== 'GET' && req.method != "DELETE")) {
+          // console.log("hola", req.url)
+          // options.body = JSON.stringify(data);
+          options.body = req.data;
+        }
+        
         let response = null
         const url = await read("./url.txt");
-
+        // console.log("holas", req.url)
         // hay dos tipos de peticion una que mandas un json y otra que mandas un FormData para cuando crear canciones
         if (req.url.startsWith("/api/Song") && (req.method == "POST" || req.method == "PUT")) {
           const filePath = req.file.path;
-        
+          
           if (!fs.existsSync(filePath)) {
             return res.status(404).json({ error: 'Archivo no encontrado' });
           }
@@ -103,9 +111,11 @@ app.use('/', (req, res, next) => {
             console.log("eeror bigg", error)
           }
             // console.log(url + req.url, options, response)
-        }else{
+        }else{ 
+    // console.log(req.url, req.method)
           response = await fetch(url + req.url, options);
-        }
+    // console.log("req.url, req.method", "response")
+  }
         
         
         if (!response.ok) {
