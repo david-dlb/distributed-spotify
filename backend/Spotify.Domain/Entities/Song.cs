@@ -6,7 +6,7 @@ namespace Spotify.Domain.Entities
 {
     public class Song : AggregateRoot
     {
-        public string Name { get; private set; }
+        public string? Name { get; private set; }
         public Guid? AuthorId { get; private set; }
         public Author? Author { get; private set; }    
         public Guid? AlbumId { get; private set; }
@@ -18,7 +18,7 @@ namespace Spotify.Domain.Entities
         public Song() { }
         private Song(string name,Guid? album, Guid? author,MusicGenre genre, Guid? id = null)
         {
-            Name = name;
+            Name = name ?? "UNKNOWN";
             AlbumId = album;
             AuthorId = author;
             Genre = genre;

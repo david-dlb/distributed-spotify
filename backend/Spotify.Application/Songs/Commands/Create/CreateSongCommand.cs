@@ -14,7 +14,7 @@ namespace Spotify.Application.Songs.Commands.Create
         public Guid? AlbumId { get; init; }
         public Guid? AuthorId { get; init; }
         public MusicGenre? Genre { get; init; }
-        public required string Name { get; init; }
+        public string Name { get; init; }
         public required Stream Stream { get; init; }
     }
 

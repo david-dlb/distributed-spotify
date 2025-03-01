@@ -3,14 +3,15 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.Json;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Spotify.Application.Common.Models;
 using Spotify.Application.Models;
 using Spotify.Application.Songs.Commands.Create;
+using Spotify.Application.Songs.Queries.GetAll;
 using Spotify.Application.Songs.Queries.GetChunkIndexed;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
@@ -18,7 +19,7 @@ using Spotify.Domain.Enums;
 namespace Spotify.Infrastructure.Services.Chord
 {
     public record StoreDataResponse(string Url, string Key, ErrorOr<Song> result);
-    public record DataCatalog(List<string> Keys);
+    public record DataCatalog(List<Song> songs);
 
     public class ChordManagerService : IChordManagerService, IDisposable
     {
@@ -70,7 +71,6 @@ namespace Spotify.Infrastructure.Services.Chord
             }
         }
 
-
         public Task HandleAliveFrom(string newNodeIp)
         {
             // DONE
@@ -119,46 +119,22 @@ namespace Spotify.Infrastructure.Services.Chord
 
         public async Task<SongDto> StoreDataAsync(string key, CreateSongData input)
         {
+            // DONE
             int keyHash = key.GenerateIntHash(_m);
-            using var scope = _serviceScopeProvider.CreateScope(); 
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>(); 
-
             ArgumentNullException.ThrowIfNull(input.SongFileStream); 
          
             if (keyHash.IsIdInInterval(Predecessor.Id, _localNode.Id))
             {
-                Log.Information("Creating the song locally");
-                var songsResult = await mediator.Send(new CreateSongCommand()
-                {
-                    Id = input.Model.Id,
-                    AlbumId = input.Model.AlbumId,
-                    AuthorId = input.Model.AuthorId,
-                    Genre = input.Model.Genre,
-                    Name = input.Model.Name ?? "UNKNOWN",
-                    Stream = input.SongFileStream
-                }, default);
-
-                var songDto = songsResult.Value; 
-                return songDto.ToDto();
+                var result = await StoreLocalDataAsync(input);
+                return result.Value.ToDto(); 
             }
             else
             {
                 var nodeUrl = await FindSuccessorAsync(keyHash);
                 if (nodeUrl == _localNode.Url)
                 {
-                    Log.Information("Creating the song locally");
-                    var songsResult = await mediator.Send(new CreateSongCommand()
-                    {
-                        Id = input.Model.Id,
-                        AlbumId = input.Model.AlbumId,
-                        AuthorId = input.Model.AuthorId,
-                        Genre = input.Model.Genre,
-                        Name = input.Model.Name ?? "UNKNOWN",
-                        Stream = input.SongFileStream
-                    }, default);
-
-                    var songDto = songsResult.Value; 
-                    return songDto.ToDto();
+                    var result = await StoreLocalDataAsync(input);
+                    return result.Value.ToDto(); 
                 }
                 else
                 {
@@ -208,6 +184,7 @@ namespace Spotify.Infrastructure.Services.Chord
 
         public async Task<ErrorOr<byte[]>> GetDataAsync(string SongIdKey, int index)
         {
+            // DONE
             int keyHash = SongIdKey.GenerateIntHash(_m);
 
             if (keyHash.IsIdInInterval(Predecessor.Id, _localNode.Id))
@@ -254,7 +231,6 @@ namespace Spotify.Infrastructure.Services.Chord
             Log.Information("Broadcasting. Status: Predecessor: {P} Id: {I} Successor: {S}", Predecessor.Id, _localNode.Id, Successor.Id);
         }
 
-
         public void Dispose()
         {
             // DONE
@@ -273,22 +249,43 @@ namespace Spotify.Infrastructure.Services.Chord
             var response = await _httpClient.PostAsync($"{Successor.Url}/api/chord/catalog/{_localNode.Ip}", dataToSend);            
             if(!response.IsSuccessStatusCode)
             {
-                Log.Error("Error al enviar el catálogo al nodo {SuccessorUrl}. Código de estado: {StatusCode}", Successor.Url, response.StatusCode);
+                // dame mas info en el log
+                Log.Error("Error al enviar el catálogo al nodo {SuccessorUrl}. Código de estado: {StatusCode}, {s}", Successor.Url, response.StatusCode, await response.Content.ReadAsStringAsync());
             }
         }
 
         public async Task ProcessCatalog(DataCatalog catalog, string ip)
         {
-            // TODO:
+            // DONE but not TESTED
             ChordNode sourceNode = new ChordNode(ip, _m); 
-            foreach (var key in catalog.Keys)
+            
+            var allSongsResult = await FindAllSongsAsync();
+            if(allSongsResult.IsError)
             {
-                if(!DataStore.ContainsKey(key))
+                Log.Error("Error reading all songs form local node.");
+                return;  
+            } 
+            var allSongs = allSongsResult.Value; 
+
+            foreach (var song in catalog.songs)
+            {
+                Song? localSong = allSongs.Find(x => x.Id == song.Id); 
+                if(localSong is null)
                 {
-                    // TODO:
-                    // Log.Information("Replication data with key: {K}", key); 
-                    // string data = await _httpClient.GetStringAsync($"{sourceNode.Url}/api/chord/data/local/{key}");
-                    // DataStore.TryAdd(key,data); 
+                    Log.Information("Replicating song with Id: {K}", song.Id.ToString());                 
+                    var songData = await _httpClient.GetStreamAsync($"{sourceNode.Url}/api/Song/local/download");
+                    using var memoryStream = new MemoryStream();
+                    await songData.CopyToAsync(memoryStream);  
+                    await StoreLocalDataAsync(new CreateSongData(){
+                        Model = new CreateSongModel(){
+                            AlbumId = song.AlbumId, 
+                            AuthorId = song.AuthorId, 
+                            Genre = song.Genre,
+                            Id = song.Id,
+                            Name = song.Name
+                        }, 
+                        SongFileStream = memoryStream                       
+                    });
                 }   
             }
         }
@@ -309,6 +306,7 @@ namespace Spotify.Infrastructure.Services.Chord
                 Predecessor = _localNode;
             }
         }
+
         public async Task RequestDataCatalog()
         {
             // DONE
@@ -325,11 +323,16 @@ namespace Spotify.Infrastructure.Services.Chord
             Log.Information("Catalog processed.");
         }
 
-        public Task<DataCatalog> GetLocalCatalog()
+        public async Task<DataCatalog> GetLocalCatalog()
         {
-            // TODO: 
-            DataCatalog catalog = new([.. DataStore.Keys]); 
-            return Task.FromResult(catalog);
+            // DONE
+            var allSongsResult = await FindAllSongsAsync(); 
+            if(allSongsResult.IsError){
+                Log.Error("Error retrieving all the songs from local node."); 
+            }
+            var songs = allSongsResult.Value; 
+            DataCatalog catalog = new([.. songs]); 
+            return catalog;
         }
 
         public async Task<ErrorOr<byte[]>> GetLocalDataAsync(string SongIdKey, int index)
@@ -339,6 +342,38 @@ namespace Spotify.Infrastructure.Services.Chord
 
             var result = await mediator.Send(
                 new GetChunkIndexedSongQuery(new Guid(SongIdKey), index),
+                default
+            );
+            return result; 
+        }
+
+        private async Task<ErrorOr<Song>> StoreLocalDataAsync(CreateSongData input)
+        {
+            // DONE but not TESTED
+            using var scope = _serviceScopeProvider.CreateScope(); 
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>(); 
+
+            Log.Information("Creating the song locally");
+            var songsResult = await mediator.Send(new CreateSongCommand()
+            {
+                Id = input.Model.Id,
+                AlbumId = input.Model.AlbumId,
+                AuthorId = input.Model.AuthorId,
+                Genre = input.Model.Genre,
+                Name = input.Model.Name ?? "UNKNOWN",
+                Stream = input.SongFileStream
+            }, default);
+
+            return songsResult; 
+        }
+
+        private async Task<ErrorOr<List<Song>>> FindAllSongsAsync()
+        {
+            using var scope = _serviceScopeProvider.CreateScope(); 
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>(); 
+
+            var result = await mediator.Send(
+                new GetAllSongQuery(new PaginationModel(1,1_000_000),new SongFilterModel()),
                 default
             );
             return result; 

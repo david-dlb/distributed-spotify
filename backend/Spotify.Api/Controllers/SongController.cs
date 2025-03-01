@@ -11,6 +11,7 @@ using Spotify.Application.Songs.Commands.Update;
 using Spotify.Application.Songs.Queries.GetAll;
 using Spotify.Application.Songs.Queries.GetChunk;
 using Spotify.Application.Songs.Queries.GetChunkIndexed;
+using Spotify.Application.Songs.Queries.GetFull;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
 using Spotify.Domain.ValueObjects;
@@ -93,12 +94,12 @@ namespace Spotify.Api.Controllers
             return File(result.Value, "application/octet-stream", enableRangeProcessing: true);
         }
 
-        [HttpGet("local/download/indexed")]
-        public async Task<IActionResult> DownloadLocalSongChunkIndexed([FromQuery] Guid songId, [FromQuery] int index)
+        [HttpGet("download")]
+        public async Task<IActionResult> DownloadFullSong([FromQuery] Guid songId)
         {
             Log.Information("[DOWNLOAD LOCAL] Song endpoint called.");
             var result = await _mediator.Send(
-                new GetChunkIndexedSongQuery(songId, index),
+                new GetFullSongQuery(songId),
                 default
             );
             if (result.IsError){

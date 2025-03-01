@@ -152,5 +152,22 @@ namespace Spotify.Infrastructure.Services.Storage
             int padding = (header[2] & 0x02) >> 1;
             return (144 * bitrate / samplingRate) + padding;
         }
+
+        public async Task<ErrorOr<byte[]>> ReadFileAsync(string id, CancellationToken ct)
+        {
+            var filePath = Path.Combine(basePath, id);
+
+            if (!File.Exists(filePath))
+            {
+                return Error.NotFound();
+            }
+            using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                var buffer = new byte[fileStream.Length];
+                fileStream.Seek(0, SeekOrigin.Begin);
+                await fileStream.ReadAsync(buffer.AsMemory(), ct);
+                return buffer;
+            }
+        }
     }
 }
