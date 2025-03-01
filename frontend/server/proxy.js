@@ -4,6 +4,7 @@ const app = express();
 const path = require('path');
 const fileUpload = require("express-fileupload")
 const FormData = require('form-data');  
+const { Readable } = require("stream");
 
 const read = async (file) => {
   const filePath = path.join(__dirname, 'url.txt');
@@ -15,6 +16,22 @@ const read = async (file) => {
     console.error('Error al leer el archivo:', error);
   }
   return d
+}
+function copiarArrayBuffer(bufferOriginal) {
+  // Verificar que el input es un ArrayBuffer
+  if (!(bufferOriginal instanceof ArrayBuffer)) {
+    throw new Error("El argumento no es un ArrayBuffer");
+  }
+
+  // Crear un nuevo ArrayBuffer con la misma longitud
+  const bufferCopia = new ArrayBuffer(bufferOriginal.byteLength);
+
+  // Copiar los datos del original a la copia
+  const vistaOriginal = new Uint8Array(bufferOriginal);
+  const vistaCopia = new Uint8Array(bufferCopia);
+  vistaCopia.set(vistaOriginal);
+
+  return bufferCopia;
 }
 
 // app.use(fileUpload({
@@ -47,25 +64,11 @@ app.use('/', (req, res, next) => {
           method: req.method,
           headers: req.headers,
           body: req.body
-        };
-        if (req.url.startsWith("/api/Song") && (req.method == "POST" || req.method == "PUT")) {
-          
-          // const data = new FormData()
-          // const file = req.files["songFile"]
-          // const emptyBlob = new Blob([], { type: 'application/octet-stream' });
-
-          // data.append('songFile', emptyBlob, 'empty_file.txt');
-          // data.append('AlbumId', req.body.AlbumId);
-          // data.append('AuthorId', req.body.AuthorId);
-          // data.append('Genre', req.body.Genre);
-          // data.append('Name', req.body.Name);
-
-
-          // options.body = data
-          // console.log(options)
-        }
+        }; 
         let response = null
         const url = await read("./url.txt");
+
+        // hay dos tipos de peticion una que mandas un json y otra que mandas un FormData
         if (req.url.startsWith("/api/Song") && (req.method == "POST" || req.method == "PUT")) {
           const filePath = req.file.path;
         
@@ -100,8 +103,14 @@ app.use('/', (req, res, next) => {
         if (!response.ok) {
           throw new Error(`Respuesta no OK: ${response.status} ${response.statusText}`);
         }
+
+        // se esperan dos tipos de repuesta un json y un arrayBuffer
         if (req.url.startsWith("/api/Song/download/indexed")) {
-          successResponse = await response.arrayBuffer() 
+          
+          const bufferOriginal = await response.arrayBuffer();
+          successResponse = copiarArrayBuffer(bufferOriginal);
+
+          console.log(bufferOriginal, successResponse)
         } else { 
           successResponse = await response.json(); 
         } 

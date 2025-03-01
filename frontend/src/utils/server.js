@@ -112,27 +112,32 @@ export async function request(method, url, data, onSuccess, onError) {
     }
     
     const ip = await read() 
-    const response = await fetch(ip + ":8000/api" + url, options) 
     let result = null
     if (url.startsWith("/Song/download/indexed")) {
-      console.log(url, response)
-      result = await response.arrayBuffer()
+      const response = await fetch(ip + ":8000/api" + url, options) 
+      if (!response.ok) {
+        onError('Error al obtener el segmento de audio')
+        throw new Error('Error al obtener el segmento de audio');
+      }
+      const d = await response.arrayBuffer()
+      onSuccess(d)
+      return d
     } else { 
+      const response = await fetch(ip + ":8000/api" + url, options) 
       result = await response.json()
+      if (!response.ok) {
+        console.log(result)
+        handleErrorWithSweetAlert(result.title || result.message)
+        throw new Error(`Error en la solicitud: ${response.status}`)
+      }
     }
-    if (!response.ok) {
-      console.log(result)
-      handleErrorWithSweetAlert(result.title || result.message)
-      throw new Error(`Error en la solicitud: ${response.status}`)
-    }
+    
     
     // Llamar a la función de éxito pasando el resultado
     onSuccess(result)
-    return result
   } catch (error) {
     // Llamar a la función de error pasando el mensaje de error
     onError(error.message)
-    return error.message
   }
 }
 

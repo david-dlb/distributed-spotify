@@ -15,11 +15,29 @@ export class BackendService {
       })
     }
     async getSongAudio(params, onSuccess, onError) {
-      request("GET", `/Song/download/indexed${params}`, null, (d) => {
-        return onSuccess(d)
-      }, (e) => {
-        return onError(e)
-      })
+      try {
+        const a = await request("GET", `/Song/download/indexed${params}`, null, (d) => {
+        }, (e) => {
+        })
+
+        console.log("wait", a)
+        onSuccess(a)
+      } catch (error) {
+        
+      }
+      // request("GET", `/Song/download/indexed${params}`, null, (d) => {
+      //   return onSuccess(d)
+      // }, (e) => {
+      //   return onError(e)
+      // })
+
+      // const response = await fetch(`http://10.0.10.2:8000/api/Song/download/indexed${params}`);
+      // if (!response.ok) {
+      //   onError('Error al obtener el segmento de audio')
+      //   throw new Error('Error al obtener el segmento de audio');
+      // }
+      // const d = await response.arrayBuffer()
+      // onSuccess(d)
     }
     async deleteSongs(params, onSuccess, onError) {
       request("DELETE", `/Song${params}`, null, (d) => {
