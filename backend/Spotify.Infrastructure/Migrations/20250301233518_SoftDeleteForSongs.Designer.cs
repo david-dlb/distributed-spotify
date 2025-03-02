@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Spotify.Infrastructure.Migrations
 {
     [DbContext(typeof(SpotifyDbContext))]
-    partial class SpotifyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250301233518_SoftDeleteForSongs")]
+    partial class SoftDeleteForSongs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -58,7 +61,7 @@ namespace Spotify.Infrastructure.Migrations
                     b.Property<Guid?>("AuthorId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<DateTime>("DeletedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Genre")

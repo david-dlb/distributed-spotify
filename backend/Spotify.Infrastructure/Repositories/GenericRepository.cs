@@ -10,9 +10,9 @@ namespace Spotify.Infrastructure.Repositories
 {
     public class GenericRepository<T>(SpotifyDbContext context) where T : Entity
     {
-        private readonly SpotifyDbContext _context = context;
+        protected readonly SpotifyDbContext _context = context;
 
-        public async Task<ErrorOr<Success>> Delete(Guid songId, CancellationToken cancellationToken = default)
+        public virtual async Task<ErrorOr<Success>> Delete(Guid songId, CancellationToken cancellationToken = default)
         {
             var _values = _context.GetTable<T>(); 
             var song = await _values.FirstOrDefaultAsync(s => s.Id == songId,cancellationToken);
@@ -83,7 +83,20 @@ namespace Spotify.Infrastructure.Repositories
         }
     }
 
-    public class SongRepository(SpotifyDbContext context) : GenericRepository<Song>(context), ISongRepository{}
+    public class SongRepository(SpotifyDbContext context) : GenericRepository<Song>(context), ISongRepository{
+        public override async Task<ErrorOr<Success>> Delete(Guid songId, CancellationToken cancellationToken = default){
+            var _values = _context.GetTable<Song>(); 
+            var value = await _values.FirstOrDefaultAsync(x => x.Id == songId,cancellationToken);
+            if (value == null)
+            {
+                return Error.NotFound("Value not found.");
+            }
+            value.Delete();
+            _values.Update(value); 
+            await _context.SaveChangesAsync(cancellationToken);  
+            return Result.Success;
+        }
+    }
     public class AlbumRepository(SpotifyDbContext context) : GenericRepository<Album>(context), IAlbumRepository{}
     public class AuthorRepository(SpotifyDbContext context) : GenericRepository<Author>(context), IAuthorRepository{}
 }

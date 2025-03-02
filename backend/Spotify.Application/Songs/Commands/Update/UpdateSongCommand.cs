@@ -2,7 +2,6 @@ using ErrorOr;
 using MediatR;
 using Serilog;
 using Spotify.Application.Common.Interfaces;
-using Spotify.Application.Common.Interfaces.Services;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
 
@@ -15,6 +14,7 @@ namespace Spotify.Application.Songs.Commands.Update
         public Guid? AuthorId { get; init; }
         public MusicGenre? Genre { get; init; }
         public string? Name { get; init; }
+        public DateTime? DeletedAt { get; init; }
     }
 
     public class UpdateSongCommandHandler(ISongRepository songRepository) : IRequestHandler<UpdateSongCommand,ErrorOr<Song>>
@@ -32,7 +32,7 @@ namespace Spotify.Application.Songs.Commands.Update
             }
 
             var song = songResult.Value; 
-            song.Update(request.Name ,request.AlbumId,request.AuthorId,request.Genre);            
+            song.Update(request.Name ,request.AlbumId,request.AuthorId,request.Genre, request.DeletedAt);            
 
             var result = await _songRepository.Update(song);
             if (result.IsError) 

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -207,6 +208,7 @@ namespace Spotify.Infrastructure.Services.Chord
                         var data = await _httpClient.GetStreamAsync($"{nodeUrl}/api/Song/download/indexed?songId={SongIdKey}&index={index}");
                         using var memoryStream = new MemoryStream();
                         await data.CopyToAsync(memoryStream);
+                        memoryStream.Position = 0;
                         return memoryStream.ToArray(); 
                     }
                     catch (Exception ex)
@@ -244,13 +246,13 @@ namespace Spotify.Infrastructure.Services.Chord
             // DONE
             if(Successor.Id == _localNode.Id)
                 return; 
+            Log.Information($"Forwarding data catalog to {Successor.Url}."); 
 
             var catalog = await GetLocalCatalog();
             var dataToSend = JsonContent.Create(catalog); 
             var response = await _httpClient.PostAsync($"{Successor.Url}/api/chord/catalog/{_localNode.Ip}", dataToSend);            
             if(!response.IsSuccessStatusCode)
             {
-                // dame mas info en el log
                 Log.Error("Error al enviar el catálogo al nodo {SuccessorUrl}. Código de estado: {StatusCode}, {s}", Successor.Url, response.StatusCode, await response.Content.ReadAsStringAsync());
             }
         }
@@ -274,27 +276,33 @@ namespace Spotify.Infrastructure.Services.Chord
                 if(localSong is null)
                 {
                     Log.Information("Replicating song with Id: {K}", song.Id.ToString());                 
-                    var songData = await _httpClient.GetStreamAsync($"{sourceNode.Url}/api/Song/local/download");
+                    var songData = await _httpClient.GetStreamAsync($"{sourceNode.Url}/api/Song/download?songId={song.Id}");
                     using var memoryStream = new MemoryStream();
                     await songData.CopyToAsync(memoryStream);  
+                    memoryStream.Position = 0;
                     await StoreLocalDataAsync(new CreateSongData(){
                         Model = new CreateSongModel(){
                             AlbumId = song.AlbumId, 
                             AuthorId = song.AuthorId, 
                             Genre = song.Genre,
                             Id = song.Id,
-                            Name = song.Name
+                            Name = song.Name,
+                            DeletedAt = song.DeletedAt
                         }, 
                         SongFileStream = memoryStream                       
                     });
                 } else {
-                    await UpdateLocalDataAsync(new UpdateSongCommand(){
-                        Id = song.Id, 
-                        AlbumId = song.AlbumId, 
-                        AuthorId = song.AuthorId, 
-                        Genre = song.Genre, 
-                        Name = song.Name
-                    });
+                    if(song.IsDiff(localSong))
+                    {
+                        await UpdateLocalDataAsync(new UpdateSongCommand(){
+                            Id = song.Id, 
+                            AlbumId = song.AlbumId, 
+                            AuthorId = song.AuthorId, 
+                            Genre = song.Genre, 
+                            Name = song.Name, 
+                            DeletedAt = song.DeletedAt
+                        });
+                    }
                 }  
             }
         }
@@ -319,9 +327,9 @@ namespace Spotify.Infrastructure.Services.Chord
         public async Task RequestDataCatalog()
         {
             // DONE
+            await Task.Delay(broadCastTimeOut + 200);
             if(Successor.Id == _localNode.Id)
             {
-                await Task.Delay(broadCastTimeOut + 200);
                 await RequestDataCatalog();
                 return;   
             } 
@@ -381,7 +389,7 @@ namespace Spotify.Infrastructure.Services.Chord
             using var scope = _serviceScopeProvider.CreateScope(); 
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>(); 
 
-            Log.Information("Creating the song locally");
+            Log.Information("Updating the song locally");
             var songsResult = await mediator.Send(input, default);
             return songsResult; 
         }

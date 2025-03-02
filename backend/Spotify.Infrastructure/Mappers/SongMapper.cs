@@ -10,7 +10,7 @@ public class SongDto
     public string Id { get; set; }
    
     [JsonPropertyName("Name")]
- public string Name { get; set; }
+    public string Name { get; set; }
     [JsonPropertyName("AuthorId")]
     public string? AuthorId { get; set; }
     
@@ -42,7 +42,7 @@ public static class SongMapper
             AuthorId = song.AuthorId.ToString(),
             ChunksCount = song?.Metadata?.Chunks?.Count ?? 0,
             Genre = song!.Genre,
-            Name = song!.Name
+            Name = song.Name
         };
     } 
 } 

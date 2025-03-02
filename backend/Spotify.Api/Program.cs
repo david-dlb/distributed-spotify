@@ -85,7 +85,6 @@ try {
             using (var scope = serviceScopeFactory.CreateScope())
             {
                 var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
-                await chordManager.HealthCheck();
                 await chordManager.ForwardDataCatalog();
             }
         }
@@ -94,7 +93,7 @@ try {
             Log.Error(ex, "Error en la tarea de replicacion.");
             Log.Error(ex.Message);
         }
-    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(4));
+    }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(4));
 
     var _healthCheck = new Timer(async (_) =>
     {
