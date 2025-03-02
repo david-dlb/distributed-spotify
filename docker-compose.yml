@@ -13,37 +13,87 @@ services:
         ipv4_address: 10.0.10.254
     command: ["sleep", "infinity"]
     
-  spotify_frontend:
-    depends_on:
-      - spotify_router
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: frontend
-    image: spotify_frontend
-    cap_add:
-      - NET_ADMIN
-    ports:
-      - 3000:3000
-    networks:
-      - clients 
+  # spotify_frontend:
+  #   depends_on:
+  #     - spotify_router
+  #   build:
+  #     context: .
+  #     dockerfile: frontend/Dockerfile
+  #   container_name: frontend
+  #   image: spotify_frontend
+  #   cap_add:
+  #     - NET_ADMIN
+  #   ports:
+  #     - 3000:3000
+  #   networks:
+  #     - clients 
   
-  spotify_server:
+  spotify_server_1:
+    environment:
+      - ASPNETCORE_URLS=http://*:6001
+      - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
     - spotify_router
     build:
       context: .
-      dockerfile: Dockerfile.backend
-    container_name: server
+      dockerfile: ./backend.DockerFile  
+    container_name: server_1
     image: spotify_server
     cap_add:
       - NET_ADMIN
     ports:
-      - 5000:6002
+      - 5001:6001
     expose: 
-      - 6002
+      - 6001
     networks:
-      - servers 
+      - servers
+    volumes:
+      - ./backend:/app  
+
+  spotify_server_2:
+    environment:
+      - ASPNETCORE_URLS=http://*:6001
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+    - spotify_router
+    build:
+      context: .
+      dockerfile: ./backend.DockerFile  
+    container_name: server_2
+    image: spotify_server
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 5002:6001
+    expose: 
+      - 6001
+    networks:
+      - servers
+    volumes:
+      - ./backend:/app  
+
+  spotify_server_3:
+    environment:
+      - ASPNETCORE_URLS=http://*:6001
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+    - spotify_router
+    build:
+      context: .
+      dockerfile: ./backend.DockerFile  
+    container_name: server_3
+    image: spotify_server
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 5003:6001
+    expose: 
+      - 6001
+    networks:
+      - servers
+    volumes:
+      - ./backend:/app  
+
 
 networks:
   servers:

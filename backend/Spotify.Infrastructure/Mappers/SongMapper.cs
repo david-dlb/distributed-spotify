@@ -1,16 +1,32 @@
 
+using System.Text.Json.Serialization;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
 
 public class SongDto
 {
-    public Guid Id { get; set; }
-    public required string Name { get; set; }
-    public Guid? AuthorId { get; set; }
+
+    [JsonPropertyName("Id")]
+    public string Id { get; set; }
+   
+    [JsonPropertyName("Name")]
+    public string Name { get; set; }
+    [JsonPropertyName("AuthorId")]
+    public string? AuthorId { get; set; }
+    
+    [JsonPropertyName("Author")]
     public Author? Author { get; set; }    
-    public Guid? AlbumId { get; set; }
+    
+    [JsonPropertyName("AlbumId")]
+    public string? AlbumId { get; set; }
+    
+    [JsonPropertyName("Album")]
     public Album? Album { get; set; }    
+    
+    [JsonPropertyName("Genre")]
     public MusicGenre? Genre { get; set; }
+    
+    [JsonPropertyName("ChunksCount")]
     public int ChunksCount { get; set; }
 }
 public static class SongMapper
@@ -19,14 +35,14 @@ public static class SongMapper
     {
         return new SongDto()
         {
-            Id = song.Id,
+            Id = song.Id.ToString(),
             Album = song.Album,
-            AlbumId = song.AlbumId,
+            AlbumId = song.AlbumId.ToString(),
             Author = song.Author,
-            AuthorId = song.AuthorId,
+            AuthorId = song.AuthorId.ToString(),
             ChunksCount = song?.Metadata?.Chunks?.Count ?? 0,
             Genre = song!.Genre,
-            Name = song!.Name
+            Name = song.Name
         };
     } 
 } 

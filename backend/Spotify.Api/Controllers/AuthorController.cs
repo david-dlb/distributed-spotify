@@ -7,6 +7,7 @@ using Spotify.Application.Authors.Commands.Create;
 using Spotify.Application.Authors.Commands.Delete;
 using Spotify.Application.Authors.Queries.GetAll;
 using Spotify.Application.Common.Models;
+using Spotify.Application.Models;
 using Spotify.Domain.Entities;
 
 namespace Spotify.Api.Controllers

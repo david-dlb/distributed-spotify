@@ -9,6 +9,7 @@ namespace Spotify.Application.Common.Models
         public Guid? AuthorId { get; init; }
         public MusicGenre? Genre { get; init; }
         public string? Name { get; init; }
+        public DateTime? DeletedAt { get; init; }
     }
 }
 

@@ -5,7 +5,6 @@ using Spotify.Application.Common.Interfaces;
 using Spotify.Application.Common.Interfaces.Services;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
-using Spotify.Domain.ValueObjects;
 
 namespace Spotify.Application.Songs.Commands.Create
 {
@@ -15,7 +14,8 @@ namespace Spotify.Application.Songs.Commands.Create
         public Guid? AlbumId { get; init; }
         public Guid? AuthorId { get; init; }
         public MusicGenre? Genre { get; init; }
-        public required string Name { get; init; }
+        public string Name { get; init; }
+        public DateTime? DeletedAt { get; init; }
         public required Stream Stream { get; init; }
     }
 
@@ -27,7 +27,7 @@ namespace Spotify.Application.Songs.Commands.Create
         public async Task<ErrorOr<Song>> Handle(CreateSongCommand request, CancellationToken cancellationToken)
         {
             Log.Information($"Adding song with name {request.Name}"); 
-            var song = Song.Create(request.Name ,request.AlbumId,request.AuthorId,request.Genre, request.Id);            
+            var song = Song.Create(request.Name ,request.AlbumId,request.AuthorId,request.Genre, request.Id, request.DeletedAt);            
 
             var fileSaveResult = await _storageService.SaveFileAsync(song.Id.ToString(),request.Stream, cancellationToken); 
             if (fileSaveResult.IsError)

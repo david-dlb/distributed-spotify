@@ -1,5 +1,6 @@
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
+using Spotify.Application.Models;
 
 namespace Spotify.Api.Controllers.Common
 {
@@ -45,12 +46,5 @@ namespace Spotify.Api.Controllers.Common
                 ErrorDetails = null
             };
         }
-    }
-    public class CommonResponse<T>
-    {
-        public bool Success { get; init; }
-        public string? ErrorMessage { get; init; }
-        public string? ErrorDetails { get; init; }
-        public T? Value { get; init; }
     }
 }

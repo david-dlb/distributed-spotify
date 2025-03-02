@@ -10,9 +10,9 @@ namespace Spotify.Infrastructure.Repositories
 {
     public class GenericRepository<T>(SpotifyDbContext context) where T : Entity
     {
-        private readonly SpotifyDbContext _context = context;
+        protected readonly SpotifyDbContext _context = context;
 
-        public async Task<ErrorOr<Success>> Delete(Guid songId, CancellationToken cancellationToken = default)
+        public virtual async Task<ErrorOr<Success>> Delete(Guid songId, CancellationToken cancellationToken = default)
         {
             var _values = _context.GetTable<T>(); 
             var song = await _values.FirstOrDefaultAsync(s => s.Id == songId,cancellationToken);
@@ -60,30 +60,63 @@ namespace Spotify.Infrastructure.Repositories
             }
             return value;
         }
+        public async Task<ErrorOr<T>> Save(T value, CancellationToken cancellationToken = default) => await Save(value, cancellationToken , 1);
 
-        public async Task<ErrorOr<T>> Save(T value, CancellationToken cancellationToken = default)
+        private async Task<ErrorOr<T>> Save(T value, CancellationToken cancellationToken = default, int tryCount = 1)
         {
-            var _values = _context.GetTable<T>(); 
-            _values.Add(value);
-            await _context.SaveChangesAsync(cancellationToken);
-            return value;
+            try {
+                var _values = _context.GetTable<T>(); 
+                _values.Add(value);
+                await _context.SaveChangesAsync(cancellationToken);
+                return value;
+            } catch {
+                // Try again
+                if(tryCount>5)
+                {
+                    throw;  
+                }
+                return await Save(value, cancellationToken, tryCount+1); 
+            }
         }
+        public async Task<ErrorOr<T>> Update(T newValue, CancellationToken cancellationToken = default) => await Update(newValue, cancellationToken, 1); 
 
-        public async Task<ErrorOr<T>> Update(T newValue, CancellationToken cancellationToken = default)
+        private async Task<ErrorOr<T>> Update(T newValue, CancellationToken cancellationToken = default, int tryCount = 1)
         {
-            var _values = _context.GetTable<T>(); 
-            var value = await _values.FirstOrDefaultAsync(x => x.Id == newValue.Id,cancellationToken);
+            try{
+                var _values = _context.GetTable<T>(); 
+                var value = await _values.FirstOrDefaultAsync(x => x.Id == newValue.Id,cancellationToken);
+                if (value == null)
+                {
+                    return Error.NotFound("Value not found.");
+                }
+                _values.Update(newValue); 
+                await _context.SaveChangesAsync(cancellationToken);  
+                return value;
+            } catch {
+                // Try again
+                if(tryCount>5)
+                {
+                    throw;  
+                }
+                return await Save(newValue, cancellationToken, tryCount+1); 
+            }
+        }
+    }
+
+    public class SongRepository(SpotifyDbContext context) : GenericRepository<Song>(context), ISongRepository{
+        public override async Task<ErrorOr<Success>> Delete(Guid songId, CancellationToken cancellationToken = default){
+            var _values = _context.GetTable<Song>(); 
+            var value = await _values.FirstOrDefaultAsync(x => x.Id == songId,cancellationToken);
             if (value == null)
             {
                 return Error.NotFound("Value not found.");
             }
-            _values.Update(newValue); 
+            value.Delete();
+            _values.Update(value); 
             await _context.SaveChangesAsync(cancellationToken);  
-            return value;
+            return Result.Success;
         }
     }
-
-    public class SongRepository(SpotifyDbContext context) : GenericRepository<Song>(context), ISongRepository{}
     public class AlbumRepository(SpotifyDbContext context) : GenericRepository<Album>(context), IAlbumRepository{}
     public class AuthorRepository(SpotifyDbContext context) : GenericRepository<Author>(context), IAuthorRepository{}
 }
