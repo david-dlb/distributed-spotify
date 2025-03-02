@@ -93,6 +93,7 @@ namespace Spotify.Api.Controllers
         [HttpGet("download")]
         public async Task<IActionResult> DownloadFullSong([FromQuery] Guid songId)
         {
+            // DONE
             Log.Information("[DOWNLOAD LOCAL] Song endpoint called.");
             var result = await _mediator.Send(
                 new GetFullSongQuery(songId),
@@ -122,11 +123,13 @@ namespace Spotify.Api.Controllers
         [HttpDelete]
         public async Task<CommonResponse<Success>> Delete([FromQuery] Guid songId)
         {
-            // DELETE
+            // DONE
             Log.Information("[DELETE] Song endpoint called.");
-            var songsResult = await _mediator.Send(new DeleteSongCommand(){
+            var songsResult = await _chordManagerService.DeleteDataAsync(
+                new DeleteSongCommand(){
                     Id = songId
-                }, default);
+                }
+            );
             if (songsResult.IsError)
             {
                 Log.Error("Error trying to delete a song.");
