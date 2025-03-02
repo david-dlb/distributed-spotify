@@ -60,26 +60,46 @@ namespace Spotify.Infrastructure.Repositories
             }
             return value;
         }
+        public async Task<ErrorOr<T>> Save(T value, CancellationToken cancellationToken = default) => await Save(value, cancellationToken , 1);
 
-        public async Task<ErrorOr<T>> Save(T value, CancellationToken cancellationToken = default)
+        private async Task<ErrorOr<T>> Save(T value, CancellationToken cancellationToken = default, int tryCount = 1)
         {
-            var _values = _context.GetTable<T>(); 
-            _values.Add(value);
-            await _context.SaveChangesAsync(cancellationToken);
-            return value;
-        }
-
-        public async Task<ErrorOr<T>> Update(T newValue, CancellationToken cancellationToken = default)
-        {
-            var _values = _context.GetTable<T>(); 
-            var value = await _values.FirstOrDefaultAsync(x => x.Id == newValue.Id,cancellationToken);
-            if (value == null)
-            {
-                return Error.NotFound("Value not found.");
+            try {
+                var _values = _context.GetTable<T>(); 
+                _values.Add(value);
+                await _context.SaveChangesAsync(cancellationToken);
+                return value;
+            } catch {
+                // Try again
+                if(tryCount>5)
+                {
+                    throw;  
+                }
+                return await Save(value, cancellationToken, tryCount+1); 
             }
-            _values.Update(newValue); 
-            await _context.SaveChangesAsync(cancellationToken);  
-            return value;
+        }
+        public async Task<ErrorOr<T>> Update(T newValue, CancellationToken cancellationToken = default) => await Update(newValue, cancellationToken, 1); 
+
+        private async Task<ErrorOr<T>> Update(T newValue, CancellationToken cancellationToken = default, int tryCount = 1)
+        {
+            try{
+                var _values = _context.GetTable<T>(); 
+                var value = await _values.FirstOrDefaultAsync(x => x.Id == newValue.Id,cancellationToken);
+                if (value == null)
+                {
+                    return Error.NotFound("Value not found.");
+                }
+                _values.Update(newValue); 
+                await _context.SaveChangesAsync(cancellationToken);  
+                return value;
+            } catch {
+                // Try again
+                if(tryCount>5)
+                {
+                    throw;  
+                }
+                return await Save(newValue, cancellationToken, tryCount+1); 
+            }
         }
     }
 

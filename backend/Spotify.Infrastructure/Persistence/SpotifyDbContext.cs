@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Spotify.Application.Albums.Queries.GetAll;
@@ -25,12 +26,21 @@ public class SpotifyDbContext : DbContext
     }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        const string conf = "Data Source=/app/Spotify.Infrastructure/spotify.db;Cache=Shared;"; 
         optionsBuilder.UseSqlite(
-            "Data Source=/app/Spotify.Infrastructure/spotify.db",
+            conf,
             opt => opt.MigrationsAssembly("Spotify.Infrastructure")
-         );
+        )
+        .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+
         optionsBuilder.ConfigureWarnings(warnings => warnings
-            .Log(RelationalEventId.PendingModelChangesWarning));
+                .Log(RelationalEventId.PendingModelChangesWarning));
+
+        using var connection = new SqliteConnection(conf);
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;";
+        command.ExecuteNonQuery();
 
     }
 

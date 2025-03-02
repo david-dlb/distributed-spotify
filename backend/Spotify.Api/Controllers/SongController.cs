@@ -31,27 +31,20 @@ namespace Spotify.Api.Controllers
             [FromQuery] Guid? authorId,
             [FromQuery] string? pattern,
             [FromQuery] MusicGenre? genre,
-            [FromQuery] Guid? id
+            [FromQuery] Guid? id,
+            [FromQuery] int? nodeId
         )
         {
             // TODO: 
             Log.Information("[GET ALL] Songs endpoint called.");
-            var songsResult = await _mediator.Send(
-                new GetAllSongQuery(
-                    new PaginationModel(page,limit),
-                    new SongFilterModel(){
-                        AlbumId = albumId, 
-                        AuthorId = authorId,
-                        Pattern = pattern,
-                        Id = id,
-                        Genre = genre
-                    } ), default);
+            
+            var songsResult = await _chordManagerService.GetAll(nodeId, new PaginationModel(page, limit)); 
             if (songsResult.IsError)
             {
                 Log.Error("Error trying to get the songs.");               
                 return Fail<List<SongDto>>("Error retrieving all songs"); 
             }
-            return Ok(songsResult.Value.Select(x => x.ToDto()).ToList());
+            return Ok(songsResult.Value);
         }
 
         

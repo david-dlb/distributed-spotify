@@ -1,4 +1,3 @@
-using System.Runtime.Serialization;
 using Spotify.Domain.Common;
 using Spotify.Domain.Enums;
 using Spotify.Domain.ValueObjects;
@@ -14,7 +13,7 @@ namespace Spotify.Domain.Entities
         public Album? Album { get; private set; }    
         public MusicGenre Genre { get; private set; }
         public SongMetadata? Metadata { get; private set; }
-        public DateTime? DeletedAt { get; private set; }
+        public DateTime? DeletedAt { get;  set; }
       
         // Needed for EF
         public Song() { }
@@ -50,7 +49,7 @@ namespace Spotify.Domain.Entities
             DeletedAt = DateTime.Now; 
         }
         public bool IsDiff(Song other){
-            return (
+            var isDiff = (
                 other.Id != Id || 
                 other.AlbumId != AlbumId || 
                 other.AuthorId != AuthorId || 
@@ -58,6 +57,7 @@ namespace Spotify.Domain.Entities
                 other.Name != Name || 
                 other.Genre != Genre
             ); 
+            return isDiff; 
         }
     }
 }

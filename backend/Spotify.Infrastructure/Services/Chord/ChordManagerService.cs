@@ -295,14 +295,23 @@ namespace Spotify.Infrastructure.Services.Chord
                 } else {
                     if(song.IsDiff(localSong))
                     {
-                        await UpdateLocalDataAsync(new UpdateSongCommand(){
-                            Id = song.Id, 
-                            AlbumId = song.AlbumId, 
-                            AuthorId = song.AuthorId, 
-                            Genre = song.Genre, 
-                            Name = song.Name, 
-                            DeletedAt = song.DeletedAt
-                        });
+                        int keyHash = song.Id.ToString().GenerateIntHash(_m); 
+                        var ownerUrl = await FindSuccessorAsync(keyHash);
+                        if (ownerUrl != _localNode.Url)
+                        {
+                            // Only update if you are not the owner of the data
+                            Log.Information($"DIFERENCES: {JsonSerializer.Serialize(song)} ############## {JsonSerializer.Serialize(localSong)}");
+                            await UpdateLocalDataAsync(new UpdateSongCommand(){
+                                Id = song.Id, 
+                                AlbumId = song.AlbumId, 
+                                AuthorId = song.AuthorId, 
+                                Genre = song.Genre, 
+                                Name = song.Name, 
+                                DeletedAt = song.DeletedAt
+                            });
+                        } else {
+                            Log.Information($"Owner of data with id: {song.Id}"); 
+                        }
                     }
                 }  
             }
@@ -508,6 +517,51 @@ namespace Spotify.Infrastructure.Services.Chord
 
                 }
             }
+        }
+
+        public async Task<ErrorOr<List<SongDto>>> GetAll(int? starterNodeId, PaginationModel pagination)
+        {
+        
+            if(starterNodeId == _localNode.Id){
+                return new List<SongDto>(); 
+            }
+
+            int? nodeIdToSend = (starterNodeId is null) ? _localNode.Id : starterNodeId;  
+
+            if(Successor.Id == _localNode.Id){
+                return (await FindAllSongsAsync()).Value
+                        .Where(x => x.DeletedAt == null)
+                        .Select(x => x.ToDto())
+                        .ToList(); 
+            }
+            
+            // ask for data to successor and return
+            var response = await _httpClient.GetAsync($"{Successor.Url}/api/Song?nodeId={nodeIdToSend}&page=1&limit=10000");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<CommonResponse<List<SongDto>>>(new JsonSerializerOptions(){
+                    IncludeFields = true,
+                    PropertyNameCaseInsensitive = true
+                });          
+                if(result!.Success)
+                {
+                    var returnedSongs = result.Value ?? []; 
+                    var localSongs = (await FindAllSongsAsync()).Value
+                        .Where(x => x.DeletedAt == null)
+                        .Select(x => x.ToDto())
+                        .ToList(); 
+                    foreach (var song in returnedSongs)
+                    {
+                        if(localSongs.All(x => x.Id != song.Id))
+                        {
+                            localSongs.Add(song); 
+                        }
+                    }
+                    return localSongs; 
+                }   
+                Log.Error($"Error sending request to fetch data to successor node {Successor.Url} from {_localNode.Url}."); 
+            }
+            throw new Exception($"Error pideindo datos, respuesta: {await response.Content.ReadAsStringAsync()}, {response.RequestMessage}");
         }
     }
 }

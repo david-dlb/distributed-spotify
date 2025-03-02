@@ -17,6 +17,7 @@ namespace Spotify.Infrastructure.Services.Chord
         Task BroadCastIAmAliveAsync();
         Task HandleAliveFrom(string node);         
         Task<string> FindSuccessorAsync(int id);
+        Task<ErrorOr<List<SongDto>>> GetAll(int? starterNodeId, PaginationModel pagination);
         Task<SongDto> StoreDataAsync(string key, CreateSongData value);
         Task<ErrorOr<Song>> UpdateDataAsync(UpdateSongCommand update);
         Task<ErrorOr<Success>> DeleteDataAsync(DeleteSongCommand input);
