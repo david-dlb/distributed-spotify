@@ -2,7 +2,7 @@ services:
   spotify_router:
     build:
       context: .
-      dockerfile: router/Dockerfile
+      dockerfile: router/router/router.base.Dockerfile
     container_name: router    
     cap_add:
       - NET_ADMIN  
@@ -12,21 +12,35 @@ services:
       clients:
         ipv4_address: 10.0.10.254
     command: ["sleep", "infinity"]
+
+  spotify_mcproxy:
+    build:
+      context: .
+      dockerfile: router/router/router.Dockerfile
+    container_name: mcproxy   
+    cap_add:
+      - NET_ADMIN  
+    networks:
+      servers:
+        ipv4_address: 10.0.11.253  
+      clients:
+        ipv4_address: 10.0.10.253
+    command: ["sleep", "infinity"]
     
-  # spotify_frontend:
-  #   depends_on:
-  #     - spotify_router
-  #   build:
-  #     context: .
-  #     dockerfile: frontend/Dockerfile
-  #   container_name: frontend
-  #   image: spotify_frontend
-  #   cap_add:
-  #     - NET_ADMIN
-  #   ports:
-  #     - 3000:3000
-  #   networks:
-  #     - clients 
+  spotify_frontend:
+    depends_on:
+      - spotify_router
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    container_name: frontend
+    image: spotify_frontend
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 3000:3000
+    networks:
+      - clients 
   
   spotify_server_1:
     environment:

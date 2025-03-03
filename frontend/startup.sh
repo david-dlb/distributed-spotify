@@ -2,4 +2,4 @@
 rm package-lock.json
 ip route del default
 ip route add default via 10.0.10.254
-exec npm run dev & exec python3 client.py & exec node server/proxy.js
+exec npm run dev & exec python3 ./app/client.py & exec node ./app/server/proxy.js

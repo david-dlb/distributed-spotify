@@ -2,14 +2,14 @@ FROM node:21-alpine
 
 WORKDIR /app
 
-COPY package.json /app
+COPY ./frontend/package.json .
 
-COPY . /app
+COPY ./frontend .
 
 RUN npm add vite 
 RUN apk add --no-cache python3
 
-COPY startup.sh /usr/local/bin/startup.sh
+COPY ./frontend/startup.sh /usr/local/bin/startup.sh
 
 RUN chmod +x /usr/local/bin/startup.sh
 
