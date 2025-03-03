@@ -122,7 +122,6 @@ app.use('/', (req, res, next) => {
           console.log("no ok", response)
           throw new Error(`Respuesta no OK: ${response.status} ${response.statusText}`);
         }
-        retries = 1
         // se esperan dos tipos de repuesta un json y un arrayBuffer
         if (req.url.startsWith("/api/Song/download/indexed")) {
           
@@ -133,6 +132,7 @@ app.use('/', (req, res, next) => {
         } else { 
           successResponse = await response.json(); 
         } 
+        retries = 1
       } catch (error) {
         console.log(`Intento ${error}: ${req.url}Error ocurrió, reintentando...`);
         
