@@ -61,7 +61,7 @@ app.use('/', (req, res, next) => {
     const maxRetries = 1; // Número máximo de intentos
     let retries = 0; 
     while(retries < maxRetries) {
-      retries ++
+      // retries ++
       try {
     console.log(req.url, req.method)
         const options = {
@@ -122,7 +122,7 @@ app.use('/', (req, res, next) => {
           console.log("no ok", response)
           throw new Error(`Respuesta no OK: ${response.status} ${response.statusText}`);
         }
-
+        retries = 1
         // se esperan dos tipos de repuesta un json y un arrayBuffer
         if (req.url.startsWith("/api/Song/download/indexed")) {
           
@@ -136,9 +136,9 @@ app.use('/', (req, res, next) => {
       } catch (error) {
         console.log(`Intento ${error}: ${req.url}Error ocurrió, reintentando...`);
         
-        if (retries === maxRetries) {
-          throw error; // Lanza el error después del número máximo de intentos
-        }
+        // if (retries === maxRetries) {
+        //   throw error; // Lanza el error después del número máximo de intentos
+        // }
         
         // Espera un poco antes del próximo intento para evitar sobrecarga del servidor
         await new Promise(resolve => setTimeout(resolve, 2000));
