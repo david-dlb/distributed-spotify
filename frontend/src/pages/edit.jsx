@@ -29,7 +29,7 @@ const Edit = ({ id, setSongs, reload }) => {
     }
  
     backendService.putSong(data, (d) => {
- 
+      console.log(d)
       setFormData({
         Name: '',
         AuthorId: null,
@@ -37,7 +37,7 @@ const Edit = ({ id, setSongs, reload }) => {
         Genre: genres[0].id
       });
       reload()
-    }, (e) => {})
+    }, (e) => {console.error(e)})
   }
 
   const getAlbums = async () => {

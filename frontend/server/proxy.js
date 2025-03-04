@@ -42,7 +42,7 @@ function copiarArrayBuffer(bufferOriginal) {
 
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" }); // Archivos se guardan en carpeta "uploads"
-
+app.use(express.json());
 // Configurar el puerto del servidor
 const PORT = 8000;
 app.use('/', (req, res, next) => {
@@ -53,7 +53,7 @@ app.use('/', (req, res, next) => {
   });
   
   async function handleRequest(req, res) {
-
+    console.log(req.url, req.method, req.body)
     let successResponse;
     if (req.method == "OPTIONS") {
       req.method = "DELETE"
@@ -61,21 +61,25 @@ app.use('/', (req, res, next) => {
     const maxRetries = 1; // Número máximo de intentos
     let retries = 0; 
     while(retries < maxRetries) {
-      // retries ++
+      retries ++
       try {
         const options = {
           method: req.method,
           headers: req.headers, 
         }; 
         if (req.body && (req.method == 'POST' || req.method == "PUT")) {
-          options.body = req.data;
+          options.body = req.body;
+        }
+
+        if (req.method == "PUT") {
+          options.body = JSON.stringify(req.body);
         }
         
         let response = null
         const url = await read("./url.txt");
         console.log(`Url obtenida desde el archivo url.txt ${url}.`);
 
-        if (req.url.startsWith("/api/Song") && (req.method == "POST" || req.method == "PUT")) {
+        if (req.url.startsWith("/api/Song") && (req.method == "POST")) {
           const filePath = req.file.path;
           
           if (!fs.existsSync(filePath)) {
@@ -109,7 +113,7 @@ app.use('/', (req, res, next) => {
           }
             // console.log(url + req.url, options, response)
         }else{ 
-    // console.log(req.url, req.method)
+    // console.log(req.url, req.method, options)
           response = await fetch(url + req.url, options);
     // console.log("req.url, req.method", "response")
   }

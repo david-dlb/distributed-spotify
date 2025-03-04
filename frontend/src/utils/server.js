@@ -2,7 +2,7 @@ import { handleErrorWithSweetAlert } from "./alert";
 
 const read = async () => {
   // Aumimos que sabemos de antemano la ip del frontend. 
-  return "http://localhost"
+  return "http://10.0.10.2"
 };
 
 export async function request(method, url, data, onSuccess, onError) {
@@ -11,17 +11,21 @@ export async function request(method, url, data, onSuccess, onError) {
     const options = {
       method: method,
     };  
-    if (method == "POST" || method == "PUT") {
-      console.log("Recibido un post o put con name:", data.get("Name"))
-    }
-    if (data && (method !== 'GET' && method != "DELETE")) {
-      // options.body = JSON.stringify(data);
+    
+    if (data && (method == 'POST')) {
       options.body = data;
+    }
+    if (data && (method == 'PUT')) {
+      options.body = JSON.stringify(data);
+      options.headers = {
+        'Content-Type': 'application/json'
+      }
     }
     
     const ip = await read() 
     const baseUrl = ip + ":8000/api"; 
     const finalUrl = baseUrl + url; 
+    console.log(options)
     console.log(`Sending request to ${finalUrl}.`)
     let result = null
     if (url.startsWith("/Song/download/indexed")) {

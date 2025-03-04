@@ -105,7 +105,7 @@ name
                   >
                     editar
                   </td>
-                  <td className="cursor" onClick={() => deleted(ele.id)}>
+                  <td className="cursor" onClick={() => deleted(ele.Id)}>
                     borrar
                   </td>
                 </tr>
