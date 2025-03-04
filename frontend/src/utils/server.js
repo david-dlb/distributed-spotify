@@ -3,6 +3,7 @@ import archivoTexto from '../../server/ip.txt';
 
 export async function requestToServer(method, url, data, onSuccess, onError) {
   try {
+    console.log("SERVER DE UTILS ")
     const options = {
       method: method,
       headers: {

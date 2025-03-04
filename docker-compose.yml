@@ -1,8 +1,8 @@
-services:
+services:    
   spotify_router:
     build:
       context: .
-      dockerfile: router/router/router_base.Dockerfile
+    image: router:base
     container_name: router    
     cap_add:
       - NET_ADMIN  
@@ -12,12 +12,13 @@ services:
       clients:
         ipv4_address: 10.0.10.254
     command: ["sleep", "infinity"]
-
-  spotify_mcproxy:
+  mc_proxy:
+    depends_on:
+      - spotify_router
     build:
       context: .
-      dockerfile: router/router/router.Dockerfile
-    container_name: mcproxy   
+    image: router
+    container_name: mc_proxy    
     cap_add:
       - NET_ADMIN  
     networks:
@@ -26,96 +27,79 @@ services:
       clients:
         ipv4_address: 10.0.10.253
     command: ["sleep", "infinity"]
-    
+
+
   spotify_frontend:
-    # depends_on:
-    #   - spotify_router
+    depends_on:
+      - spotify_router
     build:
       context: .
-      dockerfile: ./frontend/Dockerfile
+      dockerfile: ./frontend.DockerFile
     container_name: frontend
     image: spotify_frontend
     cap_add:
       - NET_ADMIN
     ports:
       - 3000:3000
-#     networks:
-#       - clients 
+      - 8000:8000
+    networks:
+      clients: 
+        ipv4_address: 10.0.10.2
+     
   
-#   spotify_server_1:
-#     environment:
-#       - ASPNETCORE_URLS=http://*:6001
-#       - ASPNETCORE_ENVIRONMENT=Development
-#     depends_on:
-#     - spotify_router
-#     build:
-#       context: .
-#       dockerfile: ./backend.DockerFile  
-#     container_name: server_1
-#     image: spotify_server
-#     cap_add:
-#       - NET_ADMIN
-#     ports:
-#       - 5001:6001
-#     expose: 
-#       - 6001
-#     networks:
-#       - servers
-#     # volumes:
-#     #   - ./backend:/app  
+  spotify_server_1:
+    depends_on:
+      - spotify_router
+    environment:
+      - ASPNETCORE_URLS=http://*:6001
+      - ASPNETCORE_ENVIRONMENT=Development
+    build:
+      context: .
+      dockerfile: ./backend.DockerFile  
+    container_name: server_1
+    image: spotify_server
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 5001:6001
+    expose: 
+      - 6001
+    networks:
+      servers:
+        ipv4_address: 10.0.11.3
 
-#   spotify_server_2:
-#     environment:
-#       - ASPNETCORE_URLS=http://*:6001
-#       - ASPNETCORE_ENVIRONMENT=Development
-#     depends_on:
-#     - spotify_router
-#     build:
-#       context: .
-#       dockerfile: ./backend.DockerFile  
-#     container_name: server_2
-#     image: spotify_server
-#     cap_add:
-#       - NET_ADMIN
-#     ports:
-#       - 5002:6001
-#     expose: 
-#       - 6001
-#     networks:
-#       - servers
-#     # volumes:
-#     #   - ./backend:/app  
-
-#   spotify_server_3:
-#     environment:
-#       - ASPNETCORE_URLS=http://*:6001
-#       - ASPNETCORE_ENVIRONMENT=Development
-#     depends_on:
-#     - spotify_router
-#     build:
-#       context: .
-#       dockerfile: ./backend.DockerFile  
-#     container_name: server_3
-#     image: spotify_server
-#     cap_add:
-#       - NET_ADMIN
-#     ports:
-#       - 5003:6001
-#     expose: 
-#       - 6001
-#     networks:
-#       - servers
-#     # volumes:
-#     #   - ./backend:/app  
-
+  spotify_server_2:
+    depends_on:
+      - spotify_router
+    environment:
+      - ASPNETCORE_URLS=http://*:6001
+      - ASPNETCORE_ENVIRONMENT=Development
+    build:
+      context: .
+      dockerfile: ./backend.DockerFile  
+    container_name: server_2
+    image: spotify_server
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 5002:6001
+    expose: 
+      - 6001
+    networks:
+      servers:
+        ipv4_address: 10.0.11.4
 
 networks:
   servers:
+    name: servers
+    external: true
     driver: bridge
     ipam:
       config:
         - subnet: 10.0.11.0/24  
   clients:
+    name: clients
+    external: true
     driver: bridge
     ipam:
       config:
