@@ -84,17 +84,18 @@ const Filters = ({ setSongs, page, reload }) => {
                 let albumDetails = null
                 let authorDetails = null
                 let y = [null, null]
-                if (ele.albumId) {
-                    await backendService.getAlbums(`?limit=1&id=${ele.albumId}`, (d) => {
+                if (ele.AlbumId) {
+                    await backendService.getAlbums(`?limit=1&id=${ele.AlbumId}`, (d) => {
                         y[0] = d.value[0];
                     }, (e) => {
                         console.error(e);
                         return null;
                     });
                 }
-                if (ele.authorId) {
-                    authorDetails = await backendService.getAuthors(`?limit=1&id=${ele.authorId}`, (d) => {
+                if (ele.AuthorId) {
+                    authorDetails = await backendService.getAuthors(`?limit=1&id=${ele.AuthorId}`, (d) => {
                         y[1] = d.value[0];
+                        console.log(y)
                     }, (e) => {
                         console.error(e);
                         return null;
@@ -107,6 +108,7 @@ const Filters = ({ setSongs, page, reload }) => {
                     "genre": getGenreNameById(ele.genre)
                 })
             }
+            console.log(songs)
             setSongs(songs)
           }, (e) => {
             (e)

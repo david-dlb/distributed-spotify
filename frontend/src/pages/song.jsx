@@ -62,7 +62,7 @@ name
         <Add reload={() => setReload(!reload)} />
 
         <Filters setSongs={setSongs} page={page} reload={reload} />
-       
+        
         
 
         <div className="mt-5">
@@ -85,15 +85,15 @@ name
                   <td
                     className="cursor"
                     onClick={() => {
-                      setCurrentSongId(ele.id)
-                      setCurrentChunkCount(ele.chunksCount)
+                      setCurrentSongId(ele.Id)
+                      setCurrentChunkCount(ele.ChunksCount)
                     }} 
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" className="bi bi-play" viewBox="0 0 16 16">
                       <path d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696z"/>
                     </svg>
                   </td>
-                  <td>{ele.name}</td>
+                  <td>{ele.Name}</td>
                   <td>{ele.author ? ele.author.name : <></>}</td>
                   <td>{ele.genre ? ele.genre : <></>}</td>
                   <td>{ele.album ? ele.album.name : <></>}</td>
@@ -101,7 +101,7 @@ name
                     className="cursor"
                     data-bs-toggle="modal"
                     data-bs-target="#modalEditarCancion"
-                    onClick={() => setId(ele.id)}
+                    onClick={() => setId(ele.Id)}
                   >
                     editar
                   </td>
