@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar/Navbar'
 import CardAlbum from '../components/CardAlbum/CardAlbum'
-import { requestToServer } from '../utils/server'
 import { BackendService } from '../utils/backend'
 
 

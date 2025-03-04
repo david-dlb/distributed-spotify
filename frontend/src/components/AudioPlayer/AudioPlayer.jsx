@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { requestToServer } from '../../utils/server';
-import { getGenreNameById } from '../../utils/global';
 import { BackendService } from '../../utils/backend';
 import { createStore } from 'redux';
 import { MiContexto } from '../../App';

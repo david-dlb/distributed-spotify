@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { requestToServer } from '../../utils/server';
-import { genres, getGenreNameById } from '../../utils/global';
+import {  getGenreNameById } from '../../utils/global';
 import Select from '../Select/Select';
 import { BackendService } from '../../utils/backend';
 
