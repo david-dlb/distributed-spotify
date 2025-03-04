@@ -52,12 +52,9 @@ app.use('/', (req, res, next) => {
     next();
   });
   
-  // Manejo de diferentes métodos
   async function handleRequest(req, res) {
-    console.log("REQUEST en el proxy")
 
     let successResponse;
-    // console.log(req.files, req.body)
     if (req.method == "OPTIONS") {
       req.method = "DELETE"
     }
@@ -66,21 +63,18 @@ app.use('/', (req, res, next) => {
     while(retries < maxRetries) {
       // retries ++
       try {
-    console.log(req.url, req.method)
         const options = {
           method: req.method,
           headers: req.headers, 
         }; 
-        if (req.body && (req.method !== 'GET' && req.method != "DELETE")) {
-          // console.log("hola", req.url)
-          // options.body = JSON.stringify(data);
+        if (req.body && (req.method == 'POST' || req.method == "PUT")) {
           options.body = req.data;
         }
         
         let response = null
         const url = await read("./url.txt");
-        // console.log("holas", req.url)
-        // hay dos tipos de peticion una que mandas un json y otra que mandas un FormData para cuando crear canciones
+        console.log(`Url obtenida desde el archivo url.txt ${url}.`);
+
         if (req.url.startsWith("/api/Song") && (req.method == "POST" || req.method == "PUT")) {
           const filePath = req.file.path;
           
@@ -99,7 +93,7 @@ app.use('/', (req, res, next) => {
           form.append('Genre', req.body.Genre);
           form.append('Name', req.body.Name);
           try {
-            console.log(url + req.url)
+            console.log(`PROXYING request to ${url + req.url}`)
             response = await fetch(url + req.url, {
               method: req.method,
               headers: form.getHeaders(),

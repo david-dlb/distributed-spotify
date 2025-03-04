@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { requestToServer, requestToServerForm } from '../utils/server';
-import { genres } from '../utils/global';
+import { request } from '../utils/server';
 import Navbar from '../components/Navbar/Navbar';
 import { BackendService } from '../utils/backend';
 
@@ -44,7 +43,7 @@ const Author = () => {
   }
 
   const deleted = (id) => {
-    requestToServer("DELETE", `/Author?AuthorId=${id}`, null, (d) => {
+    request("DELETE", `/Author?AuthorId=${id}`, null, (d) => {
       getAuthors()
     }, (e) => {
         console.log(e)

@@ -61,7 +61,7 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
-      - 5001:6001
+      - 6001:6001
     expose: 
       - 6001
     networks:
@@ -87,7 +87,7 @@ services:
       - 6001
     networks:
       servers:
-        ipv4_address: 10.0.11.4
+        ipv4_address: 10.0.11.2
 
 networks:
   servers:

@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { requestToServer, requestToServerForm } from '../utils/server';
-import { genres } from '../utils/global';
 import Navbar from '../components/Navbar/Navbar';
 import { BackendService } from '../utils/backend';
 

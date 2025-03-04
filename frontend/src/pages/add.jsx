@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { requestToServer, requestToServerForm } from '../utils/server';
 import { genres } from '../utils/global';
-import Navbar from '../components/Navbar/Navbar';
-import { handleErrorWithSweetAlert } from '../utils/alert';
 import { BackendService } from '../utils/backend';
 
 

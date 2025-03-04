@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { requestToServer } from '../utils/server';
 import { genres } from '../utils/global';
 import { BackendService } from '../utils/backend';
 
