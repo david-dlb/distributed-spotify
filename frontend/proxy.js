@@ -4,8 +4,8 @@ import dgram from 'dgram'; // Para comunicación UDP (Multicast)
 
 let targetHosts = []; // Lista de servidores backend
 const targetPort = 6000;
-const multicastAddress = '224.0.0.1'; // Dirección Multicast
-const multicastPort = 10000; // Puerto Multicast
+const multicastAddress = '224.0.0.1';
+const multicastPort = 10000;
 const localPort = 8001; // Puerto para recibir confirmaciones
 
 const proxy = httpProxy.createProxyServer({});

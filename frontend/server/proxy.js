@@ -12,6 +12,7 @@ const read = async (file) => {
   try {
     const contenido = await fs.promises.readFile(filePath, 'utf8');
     d = contenido
+
   } catch (error) {
     console.error('Error al leer el archivo:', error);
   }
@@ -53,6 +54,8 @@ app.use('/', (req, res, next) => {
   
   // Manejo de diferentes métodos
   async function handleRequest(req, res) {
+    console.log("REQUEST en el proxy")
+
     let successResponse;
     // console.log(req.files, req.body)
     if (req.method == "OPTIONS") {
