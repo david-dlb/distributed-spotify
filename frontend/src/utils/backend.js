@@ -1,4 +1,4 @@
-import { request } from "./server";
+import { request, requestPost } from "./server";
 
 export class BackendService {
     constructor() {
@@ -48,7 +48,7 @@ export class BackendService {
     }
   
     async setSong(data, onSuccess, onError) {
-      request("POST", `/Song`, data, (d) => {
+      requestPost("POST", `/Song`, data, (d) => {
         return onSuccess(d)
       }, (e) => {
         return onError(e)

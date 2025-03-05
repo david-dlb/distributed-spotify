@@ -104,7 +104,7 @@ const Filters = ({ setSongs, page, reload }) => {
                     ...ele,
                     "author": y[1],
                     "album": y[0],
-                    "genre": getGenreNameById(ele.genre)
+                    "genre": getGenreNameById(ele.Genre)
                 })
             }
             console.log(songs)
