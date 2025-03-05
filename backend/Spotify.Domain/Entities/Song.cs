@@ -14,6 +14,7 @@ namespace Spotify.Domain.Entities
         public MusicGenre Genre { get; private set; }
         public SongMetadata? Metadata { get; private set; }
         public DateTime? DeletedAt { get;  set; }
+        public DateTime? UpdatedAt { get;  set; }
       
         // Needed for EF
         public Song() { }
@@ -25,6 +26,7 @@ namespace Spotify.Domain.Entities
             Genre = genre;
             Id = id ?? Guid.NewGuid();     
             DeletedAt = deletedAt; 
+            UpdatedAt = DateTime.UtcNow; 
         }
         public static Song Create(string name, Guid? albumId, Guid? authorId, MusicGenre? genre, Guid? id = null, DateTime? deletedAt = null){
             return new Song(name, albumId, authorId, genre ?? MusicGenre.Unknown, id, deletedAt);
@@ -37,16 +39,19 @@ namespace Spotify.Domain.Entities
             AuthorId = authorId ?? AuthorId; 
             Genre = genre ?? Genre; 
             DeletedAt = deletedAt ?? DeletedAt; 
+            UpdatedAt = DateTime.UtcNow; 
         }
 
         public void SetMetadata(SongMetadata metadata)
         {
             Metadata = metadata; 
+            UpdatedAt = DateTime.UtcNow; 
         }
 
         public void Delete()
         {
             DeletedAt = DateTime.Now; 
+            UpdatedAt = DateTime.UtcNow; 
         }
         public bool IsDiff(Song other){
             var isDiff = (

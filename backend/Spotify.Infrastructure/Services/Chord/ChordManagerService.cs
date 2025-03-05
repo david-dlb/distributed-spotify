@@ -295,12 +295,10 @@ namespace Spotify.Infrastructure.Services.Chord
                 } else {
                     if(song.IsDiff(localSong))
                     {
-                        int keyHash = song.Id.ToString().GenerateIntHash(_m); 
-                        var ownerUrl = await FindSuccessorAsync(keyHash);
-                        if (ownerUrl != _localNode.Url)
+                        Log.Information($"REMOTE VERSION: {song.UpdatedAt} LOCAL VERSION: {localSong.UpdatedAt}.");
+                        if (song.UpdatedAt > localSong.UpdatedAt)
                         {
                             // Only update if you are not the owner of the data
-                            Log.Information($"DIFERENCES: {JsonSerializer.Serialize(song)} ############## {JsonSerializer.Serialize(localSong)}");
                             await UpdateLocalDataAsync(new UpdateSongCommand(){
                                 Id = song.Id, 
                                 AlbumId = song.AlbumId, 
@@ -310,7 +308,7 @@ namespace Spotify.Infrastructure.Services.Chord
                                 DeletedAt = song.DeletedAt
                             });
                         } else {
-                            Log.Information($"Owner of data with id: {song.Id}"); 
+                            Log.Information($"Local version is updated."); 
                         }
                     }
                 }  
