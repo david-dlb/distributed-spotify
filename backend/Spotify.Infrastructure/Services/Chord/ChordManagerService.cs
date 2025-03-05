@@ -52,7 +52,7 @@ namespace Spotify.Infrastructure.Services.Chord
             Log.Information("Inicializando nodo local en {LocalUrl} con Id: {Id} en ip: {Ip}", localUrl, _localNode.Id, localIp);
             Predecessor = _localNode;
             Successor = _localNode;
-            _ = RequestDataCatalog(); 
+            _ = RequestDataCatalog(0); 
         }
 
         private async Task<bool> CheckIfNodeIsAlive(ChordNode node)
@@ -332,13 +332,15 @@ namespace Spotify.Infrastructure.Services.Chord
             }
         }
 
-        public async Task RequestDataCatalog()
+        public async Task RequestDataCatalog(int tries)
         {
+            if(tries > 5)
+                return; 
             // DONE
             await Task.Delay(broadCastTimeOut + 200);
             if(Successor.Id == _localNode.Id)
             {
-                await RequestDataCatalog();
+                await RequestDataCatalog(tries+1);
                 return;   
             } 
             Log.Information("Requesting catalog from {SuccessorUrl}", Successor.Url);
