@@ -61,7 +61,7 @@ app.use('/', (req, res, next) => {
     const maxRetries = 1; // Número máximo de intentos
     let retries = 0; 
     while(retries < maxRetries) {
-      retries ++
+      // retries ++
       try {
         const options = {
           method: req.method,
