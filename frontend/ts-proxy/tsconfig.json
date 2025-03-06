@@ -1,0 +1,10 @@
+{
+  "outDir": "./dist",
+  "compilerOptions": {
+    "allowJs": false,
+  },
+  "rootDir": "./",
+  "moduleResolution": "node",
+  "esModuleInterop": true,
+  "strict": true, 
+}
