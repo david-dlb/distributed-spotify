@@ -3,6 +3,7 @@ using MediatR;
 using Serilog;
 using Spotify.Application.Common.Interfaces;
 using Spotify.Application.Common.Interfaces.Services;
+using Spotify.Domain.Common.Interfaces;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
 
@@ -19,15 +20,16 @@ namespace Spotify.Application.Songs.Commands.Create
         public required Stream Stream { get; init; }
     }
 
-    public class CreateSongCommandHandler(ISongRepository songRepository, IStorageService storageService) : IRequestHandler<CreateSongCommand,ErrorOr<Song>>
+    public class CreateSongCommandHandler(ISongRepository songRepository, IStorageService storageService, IDateTimeProvider dateTimeProvider) : IRequestHandler<CreateSongCommand,ErrorOr<Song>>
     {
         private readonly ISongRepository _songRepository = songRepository;
         private readonly IStorageService _storageService = storageService;
+        private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider;
 
         public async Task<ErrorOr<Song>> Handle(CreateSongCommand request, CancellationToken cancellationToken)
         {
             Log.Information($"Adding song with name {request.Name}"); 
-            var song = Song.Create(request.Name ,request.AlbumId,request.AuthorId,request.Genre, request.Id, request.DeletedAt);            
+            var song = Song.Create(_dateTimeProvider, request.Name ,request.AlbumId,request.AuthorId,request.Genre, request.Id, request.DeletedAt);            
 
             var fileSaveResult = await _storageService.SaveFileAsync(song.Id.ToString(),request.Stream, cancellationToken); 
             if (fileSaveResult.IsError)

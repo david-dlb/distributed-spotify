@@ -4,6 +4,7 @@ using Spotify.Application.Common.Interfaces;
 using Spotify.Application.Common.Interfaces.Repositories;
 using Spotify.Application.Common.Models;
 using Spotify.Domain.Common;
+using Spotify.Domain.Common.Interfaces;
 using Spotify.Domain.Entities;
 
 namespace Spotify.Infrastructure.Repositories
@@ -103,7 +104,9 @@ namespace Spotify.Infrastructure.Repositories
         }
     }
 
-    public class SongRepository(SpotifyDbContext context) : GenericRepository<Song>(context), ISongRepository{
+    public class SongRepository(SpotifyDbContext context, IDateTimeProvider dateTimeProvider) : GenericRepository<Song>(context), ISongRepository{
+        private readonly IDateTimeProvider dateTimeProvider = dateTimeProvider;
+
         public override async Task<ErrorOr<Success>> Delete(Guid songId, CancellationToken cancellationToken = default){
             var _values = _context.GetTable<Song>(); 
             var value = await _values.FirstOrDefaultAsync(x => x.Id == songId,cancellationToken);
@@ -111,7 +114,7 @@ namespace Spotify.Infrastructure.Repositories
             {
                 return Error.NotFound("Value not found.");
             }
-            value.Delete();
+            value.Delete(dateTimeProvider);
             _values.Update(value); 
             await _context.SaveChangesAsync(cancellationToken);  
             return Result.Success;

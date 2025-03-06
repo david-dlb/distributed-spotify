@@ -1,4 +1,5 @@
 using Spotify.Domain.Common;
+using Spotify.Domain.Common.Interfaces;
 using Spotify.Domain.Enums;
 using Spotify.Domain.ValueObjects;
 
@@ -18,7 +19,7 @@ namespace Spotify.Domain.Entities
       
         // Needed for EF
         public Song() { }
-        private Song(string name,Guid? album, Guid? author,MusicGenre genre, Guid? id = null, DateTime? deletedAt = null)
+        private Song(IDateTimeProvider dateTimeProvider, string name,Guid? album, Guid? author,MusicGenre genre, Guid? id = null, DateTime? deletedAt = null)
         {
             Name = name ?? "UNKNOWN";
             AlbumId = album;
@@ -26,32 +27,31 @@ namespace Spotify.Domain.Entities
             Genre = genre;
             Id = id ?? Guid.NewGuid();     
             DeletedAt = deletedAt; 
-            UpdatedAt = DateTime.UtcNow; 
+            UpdatedAt = dateTimeProvider.UtcNow; 
         }
-        public static Song Create(string name, Guid? albumId, Guid? authorId, MusicGenre? genre, Guid? id = null, DateTime? deletedAt = null){
-            return new Song(name, albumId, authorId, genre ?? MusicGenre.Unknown, id, deletedAt);
+        public static Song Create(IDateTimeProvider dateTimeProvider,string name, Guid? albumId, Guid? authorId, MusicGenre? genre, Guid? id = null, DateTime? deletedAt = null){
+            return new Song(dateTimeProvider,name, albumId, authorId, genre ?? MusicGenre.Unknown, id, deletedAt);
         }
 
-        public void Update(string? name, Guid? albumId, Guid? authorId, MusicGenre? genre, DateTime? deletedAt)
+        public void Update(IDateTimeProvider dateTimeProvider,string? name, Guid? albumId, Guid? authorId, MusicGenre? genre, DateTime? deletedAt)
         {
             Name = name ?? Name;  
             AlbumId = albumId ?? AlbumId;
             AuthorId = authorId ?? AuthorId; 
             Genre = genre ?? Genre; 
             DeletedAt = deletedAt ?? DeletedAt; 
-            UpdatedAt = DateTime.UtcNow; 
+            UpdatedAt = dateTimeProvider.UtcNow; 
         }
 
         public void SetMetadata(SongMetadata metadata)
         {
             Metadata = metadata; 
-            UpdatedAt = DateTime.UtcNow; 
         }
 
-        public void Delete()
+        public void Delete(IDateTimeProvider dateTimeProvider)
         {
             DeletedAt = DateTime.Now; 
-            UpdatedAt = DateTime.UtcNow; 
+            UpdatedAt = dateTimeProvider.UtcNow; 
         }
         public bool IsDiff(Song other){
             var isDiff = (

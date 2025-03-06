@@ -7,6 +7,8 @@ using Spotify.Infrastructure.Services.Storage;
 using Spotify.Application.Common.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Spotify.Infrastructure.Services.Chord;
+using Spotify.Infrastructure.Services.DateTimeProvider;
+using Spotify.Domain.Common.Interfaces;
 
 namespace Spotify.Infrastructure
 {
@@ -33,6 +35,7 @@ namespace Spotify.Infrastructure
 
 
             services.AddSingleton<IChordManagerService, ChordManagerService>();           
+            services.AddSingleton<IDateTimeProvider, DateTimeProvider>();           
             
             services.AddHostedService<UdpBroadcastListener>();
             return services;

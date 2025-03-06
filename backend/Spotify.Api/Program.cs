@@ -6,13 +6,12 @@ using Spotify.Infrastructure.Services.Chord;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.ClearProviders(); 
+builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Warning);
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo
-    .Console(
+    .WriteTo.Console(
         theme: AnsiConsoleTheme.Sixteen,
         outputTemplate: "[{Level}] {Timestamp:HH:mm:ss} {Message}{NewLine}")
     .CreateLogger();
@@ -33,10 +32,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddApplicationServices()
-    .AddInfrastructureServices(builder.Configuration); 
+    .AddInfrastructureServices(builder.Configuration);
 
 var urls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? "http://localhost:6002";
-Log.Information(urls); 
+Log.Information(urls);
 builder.WebHost.UseUrls(urls);
 
 Log.Information("Building application.");
@@ -50,77 +49,73 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Documentation v1");
-        c.RoutePrefix = string.Empty; 
-    }); 
+        c.RoutePrefix = string.Empty;
+    });
 }
 
 app.MapControllers();
 
-try {
+// Definir un `CancellationTokenSource` para detener los timers al apagar la app.
+var cts = new CancellationTokenSource();
+var token = cts.Token;
+
+// Variables estáticas para evitar que los timers sean recolectados por el GC.
+Timer? _broadCastTimer = null;
+Timer? _forwardDataTimer = null;
+Timer? _healthCheckTimer = null;
+
+try
+{
     var url = app.Configuration["ASPNETCORE_URLS"];
     Log.Information($"The application is running at: {url}");
     var serviceScopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
 
-    var _broadCastTimer = new Timer(async (_) =>
+    async Task RunSafeAsync(Func<IChordManagerService, Task> action)
     {
+        if (token.IsCancellationRequested) return;
+
         try
         {
             using (var scope = serviceScopeFactory.CreateScope())
             {
                 var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
-                await chordManager.BroadCastIAmAliveAsync();
+                await action(chordManager);
             }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error en la tarea de estabilización.");
-            Log.Error(ex.Message);
+            Log.Error(ex, "Error ejecutando una tarea en background.");
         }
-    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+    }
 
-    var _forwardDataTimer = new Timer(async (_) =>
+    _broadCastTimer = new Timer(async _ => await RunSafeAsync(chord => chord.BroadCastIAmAliveAsync()), 
+        null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+
+    _forwardDataTimer = new Timer(async _ => await RunSafeAsync(chord => chord.ForwardDataCatalog()), 
+        null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(4));
+
+    _healthCheckTimer = new Timer(async _ => await RunSafeAsync(chord => chord.HealthCheck()), 
+        null, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2));
+
+    app.Lifetime.ApplicationStopping.Register(() =>
     {
-        try
-        {
-            using (var scope = serviceScopeFactory.CreateScope())
-            {
-                var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
-                await chordManager.ForwardDataCatalog();
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error en la tarea de replicacion.");
-            Log.Error(ex.Message);
-        }
-    }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(4));
-
-    var _healthCheck = new Timer(async (_) =>
-    {
-        try
-        {
-            using (var scope = serviceScopeFactory.CreateScope())
-            {
-                var chordManager = scope.ServiceProvider.GetRequiredService<IChordManagerService>();
-                await chordManager.HealthCheck();
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error en la tarea de revision de salud.");
-            Log.Error(ex.Message);
-        }
-    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
-
-
-
+        Log.Information("Shutting down timers...");
+        cts.Cancel();
+        _broadCastTimer?.Dispose();
+        _forwardDataTimer?.Dispose();
+        _healthCheckTimer?.Dispose();
+    });
 
     app.Run();
-}catch(Exception e){
-    Log.Error(e, "There is an error when tried to run the app.");
-    Log.Error(e, "Details: {ErrorMessage}.", e.Message);
-    Log.Error(e, "StackTrace: {StackTrace}.", e.StackTrace);
-    Log.Error(e, "InnerException: {InnerException}.", e.InnerException);
-}finally{ 
+}
+catch (Exception e)
+{
+    Log.Error(e, "There was an error when trying to run the app.");
+    Log.Error("Details: {ErrorMessage}.", e.Message);
+    Log.Error("StackTrace: {StackTrace}.", e.StackTrace);
+    Log.Error("InnerException: {InnerException}.", e.InnerException);
+}
+finally
+{
     Log.Information("Shutting down the application.");
 }

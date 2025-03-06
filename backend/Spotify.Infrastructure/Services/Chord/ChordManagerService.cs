@@ -16,6 +16,7 @@ using Spotify.Application.Songs.Commands.Delete;
 using Spotify.Application.Songs.Commands.Update;
 using Spotify.Application.Songs.Queries.GetAll;
 using Spotify.Application.Songs.Queries.GetChunkIndexed;
+using Spotify.Domain.Common.Interfaces;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
 
@@ -29,6 +30,7 @@ namespace Spotify.Infrastructure.Services.Chord
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly IServiceScopeFactory _serviceScopeProvider;
+        private readonly IDateTimeProvider _dateTimeProvider;
         private readonly int _m = 16;
         private readonly int broadCastTimeOut = 5000;
         private readonly ChordNode _localNode;
@@ -36,11 +38,12 @@ namespace Spotify.Infrastructure.Services.Chord
         public ChordNode Successor { get; set; }
         public ConcurrentDictionary<string, string> DataStore { get; } = new();
 
-        public ChordManagerService(HttpClient httpClient, IConfiguration configuration, IServiceScopeFactory serviceScopeProvider)
+        public ChordManagerService(HttpClient httpClient, IConfiguration configuration, IServiceScopeFactory serviceScopeProvider, IDateTimeProvider dateTimeProvider)
         {
             _httpClient = httpClient;
             _configuration = configuration;
             _serviceScopeProvider = serviceScopeProvider;
+            _dateTimeProvider = dateTimeProvider;
             var localIp = Dns.GetHostEntry(Dns.GetHostName())
                 .AddressList.First(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                 .ToString();
@@ -358,6 +361,16 @@ namespace Spotify.Infrastructure.Services.Chord
             var catalog = await _httpClient.GetFromJsonAsync<DataCatalog>($"{Successor.Url}/api/chord/catalog"); 
             await ProcessCatalog(catalog!, Successor.Ip); 
             Log.Information("Catalog processed.");
+            
+            var leadUrl = await FindSuccessorAsync(0);
+            if(_localNode.Url == leadUrl)
+                return; 
+            var response = await _httpClient.GetStringAsync($"{leadUrl}/api/time");
+            if (DateTime.TryParse(response, out DateTime serverTime))
+            {
+                _dateTimeProvider.Adjust(serverTime); 
+                Log.Information("Clock adjusted.");
+            }
         }
 
         public async Task<DataCatalog> GetLocalCatalog()
@@ -423,7 +436,6 @@ namespace Spotify.Infrastructure.Services.Chord
             var songsResult = await mediator.Send(input, default);
             return songsResult; 
         }
-
 
         private async Task<ErrorOr<List<Song>>> FindAllSongsAsync()
         {

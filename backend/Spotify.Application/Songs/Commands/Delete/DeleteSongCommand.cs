@@ -3,6 +3,7 @@ using MediatR;
 using Serilog;
 using Spotify.Application.Common.Interfaces;
 using Spotify.Application.Common.Interfaces.Services;
+using Spotify.Domain.Common.Interfaces;
 
 namespace Spotify.Application.Songs.Commands.Delete
 {
@@ -11,10 +12,11 @@ namespace Spotify.Application.Songs.Commands.Delete
         public required Guid Id { get; init; }
     }
 
-    public class DeleteSongCommandHandler(ISongRepository songRepository, IStorageService storageService) : IRequestHandler<DeleteSongCommand,ErrorOr<Success>>
+    public class DeleteSongCommandHandler(ISongRepository songRepository, IStorageService storageService, IDateTimeProvider dateTimeProvider) : IRequestHandler<DeleteSongCommand,ErrorOr<Success>>
     {
         private readonly ISongRepository _songRepository = songRepository;
         private readonly IStorageService _storageService = storageService;
+        private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider;
 
         public async Task<ErrorOr<Success>> Handle(DeleteSongCommand request, CancellationToken cancellationToken)
         {

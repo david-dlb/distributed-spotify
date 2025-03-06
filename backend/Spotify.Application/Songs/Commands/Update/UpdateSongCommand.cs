@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Serilog;
 using Spotify.Application.Common.Interfaces;
+using Spotify.Domain.Common.Interfaces;
 using Spotify.Domain.Entities;
 using Spotify.Domain.Enums;
 
@@ -17,9 +18,10 @@ namespace Spotify.Application.Songs.Commands.Update
         public DateTime? DeletedAt { get; init; }
     }
 
-    public class UpdateSongCommandHandler(ISongRepository songRepository) : IRequestHandler<UpdateSongCommand,ErrorOr<Song>>
+    public class UpdateSongCommandHandler(ISongRepository songRepository, IDateTimeProvider dateTimeProvider) : IRequestHandler<UpdateSongCommand,ErrorOr<Song>>
     {
         private readonly ISongRepository _songRepository = songRepository;
+        private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider;
 
         public async Task<ErrorOr<Song>> Handle(UpdateSongCommand request, CancellationToken cancellationToken)
         {
@@ -32,7 +34,7 @@ namespace Spotify.Application.Songs.Commands.Update
             }
 
             var song = songResult.Value; 
-            song.Update(request.Name ,request.AlbumId,request.AuthorId,request.Genre, request.DeletedAt);            
+            song.Update(_dateTimeProvider, request.Name ,request.AlbumId,request.AuthorId,request.Genre, request.DeletedAt);            
 
             var result = await _songRepository.Update(song);
             if (result.IsError) 
