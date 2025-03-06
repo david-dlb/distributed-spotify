@@ -184,9 +184,18 @@ namespace Spotify.Infrastructure.Services.Chord
                 }
             }
         }
-
         public async Task<ErrorOr<byte[]>> GetDataAsync(string SongIdKey, int index)
         {
+            return await GetDataAsync(SongIdKey, index, 0); 
+        }
+
+        public async Task<ErrorOr<byte[]>> GetDataAsync(string SongIdKey, int index, int attempt = 0)
+        {
+            if(attempt > 10)
+            {
+                return Error.Unexpected("Not found after 5 attempts.");
+            }
+
             // DONE
             int keyHash = SongIdKey.GenerateIntHash(_m);
 
@@ -215,7 +224,8 @@ namespace Spotify.Infrastructure.Services.Chord
                     catch (Exception ex)
                     {
                         Log.Error("Error al recuperar la clave {Key} desde el nodo {NodeUrl}. Excepción: {Exception}", SongIdKey, nodeUrl, ex);
-                        return Error.Unexpected(description: ex.Message); 
+                        await Task.Delay(500); 
+                        return await GetDataAsync(SongIdKey, index, attempt+1); 
                     }
                 }
             }
