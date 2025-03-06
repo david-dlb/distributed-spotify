@@ -40,7 +40,7 @@ const getTargetUrl = async (tries = 0): Promise<string> => {
     if (await isBackendAlive(backUrl)) {
       return backUrl;
     }
-
+    await new Promise(resolve => setTimeout(resolve, 200));
     return getTargetUrl(tries + 1);
   } catch (error) {
     console.error("Error reading backend URL:", error);
@@ -51,7 +51,7 @@ const getTargetUrl = async (tries = 0): Promise<string> => {
 const server = createServer(async (req, res) => {
   try {
     const targetUrl = await getTargetUrl();
-    console.log(`Forwarding request to ${targetUrl}`);
+    console.log(`Forwarding request to ${targetUrl}, method ${req.method}, url: ${req.url}.`);
 
     proxy.web(req, res, { target: targetUrl }, (err) => {
       if (err) {

@@ -1,31 +1,6 @@
 import { handleErrorWithSweetAlert } from "./alert";
 
-const read = async () => {
-  // Aumimos que sabemos de antemano la ip del frontend. 
-  return "http://10.0.10.2"
-};
-
-
-const readA = async (filePath = '../../server/url.txt') => {
-  let data = ""
-  try {
-    let response = await fetch(filePath)
-    response = await response.text()
-    data = response.trim()
-  } catch (error) {
-    console.error('Error al leer el archivo:', error);
-  }
-  await fetch(filePath)
-  .then(response => response.text())
-  .then(data => {
-    const ipAddress = data.trim(); // Elimina espacios en blanco y extrae la IP
-    data = ipAddress
-  })
-  .catch(error => {
-    console.error('Error al leer el archivo:', error);
-  });
-  return data
-}
+const PROXY_URL = "http://localhost:8000"
 
 export async function request(method, url, data, onSuccess, onError) {
   try {
@@ -44,8 +19,7 @@ export async function request(method, url, data, onSuccess, onError) {
       }
     }
     
-    const ip = await readA('../../server/ip.txt') 
-    const baseUrl = ip + ":8000/api"; 
+    const baseUrl = PROXY_URL + "/api"; 
     let result = null
     if (url.startsWith("/Song/download/indexed")) {
       
@@ -83,8 +57,7 @@ export async function requestPost(method, url, data, onSuccess, onError) {
       };  
       
       options.body = data; 
-      const ip = await readA('../../server/url.txt') 
-      const baseUrl = ip + "/api";  
+      const baseUrl = PROXY_URL + "/api";  
       let result = null 
         const response = await fetch(baseUrl + url, options) 
         if (!response.ok) {

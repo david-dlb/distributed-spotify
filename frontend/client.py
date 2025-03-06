@@ -58,7 +58,8 @@ sock_temp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock_temp.connect(("8.8.8.8", 80))  # Conexión a un servidor externo para obtener la IP local
 CLIENT_IP = sock_temp.getsockname()[0]
 sock_temp.close()
-write_simple("server/ip.txt", "http://" + CLIENT_IP)
+# No lo necesitas porque sabes que esta en el localhost
+# write_simple("server/ip.txt", "http://" + CLIENT_IP)
 
 # Crear socket UDP para enviar solicitud
 sock_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -80,7 +81,7 @@ while True:
         response, server_addr = sock_recv.recvfrom(1024)
         # print(f"Respuesta del servidor {server_addr}: {response.decode()}")
         # write('public/config.js', server_addr)
-        write_simple("server/url.txt", "http://" + server_addr[0] + ":" + read("server/port.txt"))
+        write_simple("ts-proxy/url.txt", "http://" + server_addr[0] + ":" + read("ts-proxy/port.txt"))
     except socket.timeout:
         print("No se recibió respuesta del servidor.")
 
